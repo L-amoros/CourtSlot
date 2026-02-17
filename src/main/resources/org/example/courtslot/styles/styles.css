@@ -1,0 +1,160 @@
+/* ══════════════════════════════════════════════════
+   CourtSlot — styles.css
+   Usado en: login.fxml, register.fxml
+   Paleta: dark navy + verde esmeralda
+   ══════════════════════════════════════════════════ */
+
+/* ── Variables de color ── */
+.root {
+    -cs-bg-dark:     #070B12;
+    -cs-bg-card:     #111827;
+    -cs-bg-input:    #1f2937;
+    -cs-border:      rgba(255,255,255,0.10);
+    -cs-primary:     #22c55e;
+    -cs-primary-hov: #16a34a;
+    -cs-red:         #ef4444;
+    -cs-text:        #f8fafc;
+    -cs-muted:       #94a3b8;
+}
+
+/* ── Fondo pantalla completa ── */
+.background {
+    -fx-background-color: linear-gradient(to bottom right, #070B12, #0f2027, #1a3a4a);
+}
+
+/* ── Card / ventana central ── */
+.card {
+    -fx-background-color: #111827;
+    -fx-background-radius: 20px;
+    -fx-padding: 36px 40px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.70), 40, 0.4, 0, 12);
+    -fx-border-color: rgba(255,255,255,0.07);
+    -fx-border-radius: 20px;
+    -fx-border-width: 1px;
+}
+
+/* ── Tipografía ── */
+.brand-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #f8fafc;
+    -fx-font-family: "Segoe UI";
+}
+
+.title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f8fafc;
+}
+
+.subtext {
+    -fx-font-size: 13px;
+    -fx-text-fill: #94a3b8;
+    -fx-text-alignment: center;
+}
+
+.field-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #cbd5e1;
+}
+
+/* ── Separador ── */
+.separator {
+    -fx-background-color: rgba(255,255,255,0.08);
+}
+
+/* ── Inputs ── */
+.input-field {
+    -fx-background-color: #1f2937;
+    -fx-text-fill: #f8fafc;
+    -fx-prompt-text-fill: #475569;
+    -fx-background-radius: 10px;
+    -fx-border-color: rgba(255,255,255,0.12);
+    -fx-border-radius: 10px;
+    -fx-border-width: 1px;
+    -fx-padding: 10px 14px;
+    -fx-font-size: 14px;
+    -fx-cursor: text;
+}
+
+.input-field:focused {
+    -fx-border-color: #22c55e;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(34,197,94,0.30), 10, 0, 0, 0);
+}
+
+.input-field:hover {
+    -fx-border-color: rgba(255,255,255,0.25);
+}
+
+/* ── Botón primario ── */
+.btn-primary {
+    -fx-background-color: #22c55e;
+    -fx-text-fill: #0d1117;
+    -fx-font-weight: 800;
+    -fx-font-size: 14px;
+    -fx-background-radius: 10px;
+    -fx-padding: 10px 20px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(34,197,94,0.40), 12, 0, 0, 4);
+}
+
+.btn-primary:hover {
+    -fx-background-color: #16a34a;
+    -fx-effect: dropshadow(gaussian, rgba(34,197,94,0.55), 16, 0, 0, 6);
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #15803d;
+    -fx-translate-y: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(34,197,94,0.20), 4, 0, 0, 2);
+}
+
+.btn-primary:disabled {
+    -fx-background-color: #374151;
+    -fx-text-fill: #6b7280;
+    -fx-effect: none;
+    -fx-cursor: default;
+}
+
+/* Indicador de foco visible — ACCESIBILIDAD */
+.btn-primary:focused {
+    -fx-border-color: white;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+}
+
+/* ── Hyperlinks ── */
+.link {
+    -fx-text-fill: #22c55e;
+    -fx-font-size: 13px;
+    -fx-underline: false;
+    -fx-cursor: hand;
+}
+
+.link:hover {
+    -fx-text-fill: #4ade80;
+    -fx-underline: true;
+}
+
+.link:focused {
+    -fx-border-color: #22c55e;
+    -fx-border-width: 1px;
+}
+
+/* ── Labels de feedback ── */
+.error-label {
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-alignment: center;
+}
+
+.success-label {
+    -fx-text-fill: #22c55e;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-alignment: center;
+    -fx-wrap-text: true;
+}

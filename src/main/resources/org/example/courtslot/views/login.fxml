@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane alignment="CENTER" stylesheets="@../styles/styles.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.courtslot.controller.LoginController">
+
+   <!-- Fondo degradado -->
+   <Pane maxHeight="Infinity" maxWidth="Infinity" styleClass="background" />
+
+   <!-- Card login -->
+   <VBox alignment="CENTER" maxHeight="560" maxWidth="400" prefHeight="560" prefWidth="400" spacing="16" styleClass="card">
+
+      <!-- Logo / Icono -->
+      <VBox alignment="CENTER" spacing="6">
+         <Label style="-fx-font-size: 48px;" text="🎾" />
+         <Label styleClass="brand-title" text="CourtSlot" />
+         <Label styleClass="subtext" text="Gestión inteligente de pistas deportivas" />
+      </VBox>
+
+      <Separator styleClass="separator" />
+
+      <Label styleClass="title" text="Bienvenido/a" />
+      <Label styleClass="subtext" text="Introduce tus credenciales para acceder" />
+
+      <!-- Formulario -->
+      <VBox maxWidth="300" spacing="10">
+         <Label styleClass="field-label" text="Email" />
+         <TextField fx:id="emailField" accessibleText="Campo de email" focusTraversable="true" promptText="tu@email.com" styleClass="input-field" />
+
+         <Label styleClass="field-label" text="Contraseña" />
+         <PasswordField fx:id="passwordField" accessibleText="Campo de contraseña" focusTraversable="true" styleClass="input-field" />
+      </VBox>
+
+      <!-- Mensaje de error -->
+      <Label fx:id="errorLabel" maxWidth="300" styleClass="error-label" wrapText="true" />
+
+      <!-- Botón principal -->
+      <Button fx:id="loginBtn" accessibleText="Botón iniciar sesión" focusTraversable="true" maxWidth="300" mnemonicParsing="false" onAction="#onIniciarSesionButtonClick" prefHeight="44" styleClass="btn-primary" text="Iniciar sesión" />
+
+      <HBox alignment="CENTER" spacing="5">
+         <Label styleClass="subtext" text="¿No tienes cuenta?" />
+         <Hyperlink accessibleText="Ir a la página de registro" focusTraversable="true" onAction="#onRegisterButtonClick" styleClass="link" text="Regístrate aquí" />
+      </HBox>
+   </VBox>
+
+</StackPane>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane styleClass="root"
+            stylesheets="@../styles/homepage.css"
+            xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.courtslot.controller.HomepageController">
+
+    <!-- ══════════════════════════════════════════
+         NAVBAR
+         ══════════════════════════════════════════ -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="navbar">
+
+            <Label styleClass="brand" text="CourtSlot"/>
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Iconos acción verde -->
+            <Button styleClass="icon-btn"
+                    text="♥"
+                    onAction="#onFavoritos"
+                    mnemonicParsing="false"
+                    accessibleText="Favoritos"/>
+            <Button styleClass="icon-btn"
+                    text="≡"
+                    onAction="#onFiltros"
+                    mnemonicParsing="false"
+                    accessibleText="Filtros"/>
+
+            <!-- Buscador -->
+            <TextField fx:id="searchField"
+                       promptText="Buscar pista..."
+                       styleClass="search-field"
+                       onAction="#onBuscar"
+                       prefWidth="200"
+                       accessibleText="Buscar pistas por nombre o deporte"/>
+            <Button styleClass="btn-search"
+                    text="🔍"
+                    onAction="#onBuscar"
+                    mnemonicParsing="false"
+                    accessibleText="Buscar"/>
+
+            <!-- Links + usuario -->
+            <Hyperlink styleClass="navlink"
+                       text="Mis Reservas"
+                       onAction="#onMisReservas"
+                       focusTraversable="true"/>
+
+            <Button fx:id="adminBtn"
+                    styleClass="btn-admin"
+                    text="⚙ Admin"
+                    onAction="#onAdminPanel"
+                    visible="false"
+                    mnemonicParsing="false"
+                    accessibleText="Panel de administración"/>
+
+            <Label fx:id="userNameLabel" styleClass="user-chip" text=""/>
+
+            <Button styleClass="btn-outline"
+                    text="Salir"
+                    onAction="#onCerrarSesion"
+                    mnemonicParsing="false"
+                    accessibleText="Cerrar sesión"/>
+        </HBox>
+    </top>
+
+    <!-- ══════════════════════════════════════════
+         CONTENIDO PRINCIPAL
+         ══════════════════════════════════════════ -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll" hbarPolicy="NEVER">
+            <content>
+                <VBox alignment="TOP_CENTER" spacing="32" styleClass="content">
+
+                    <!-- Hero -->
+                    <VBox alignment="CENTER" spacing="10" styleClass="hero">
+                        <Label styleClass="hero-title"
+                               text="Encuentra tu Pista"
+                               wrapText="true"/>
+                        <Label styleClass="hero-subtitle"
+                               text="Reserva en segundos. Sin llamadas, sin esperas."
+                               wrapText="true"/>
+                    </VBox>
+
+                    <!-- Cards — se rellenan desde HomepageController -->
+                    <FlowPane fx:id="cardsContainer"
+                              alignment="CENTER"
+                              hgap="24" vgap="24"
+                              styleClass="cards"
+                              prefWrapLength="1200"/>
+
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
+
+
