@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane styleClass="root"
+            stylesheets="@../css/homepage.css"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.courtslot.controller.AdminPanelController">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="navbar">
+            <Button styleClass="btn-back" text="← Volver" onAction="#onVolver" mnemonicParsing="false" />
+            <Label styleClass="brand" text="CourtSlot · Panel Admin" />
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane styleClass="tab-pane" tabClosingPolicy="UNAVAILABLE">
+
+            <Tab text="🏟️ Pistas">
+                <ScrollPane fitToWidth="true" styleClass="scroll">
+                    <content>
+                        <VBox spacing="16" styleClass="content">
+                            <TableView fx:id="pistasTable" prefHeight="240" styleClass="table-view">
+                                <columns>
+                                    <TableColumn fx:id="colPistaNombre"  text="Nombre"      prefWidth="180" />
+                                    <TableColumn fx:id="colPistaDeporte" text="Deporte"     prefWidth="130" />
+                                    <TableColumn fx:id="colPistaDesc"    text="Descripción" prefWidth="200" />
+                                    <TableColumn fx:id="colPistaPrecio"  text="Precio/h"    prefWidth="100" />
+                                    <TableColumn fx:id="colPistaActiva"  text="Estado"      prefWidth="150" />
+                                </columns>
+                                <placeholder><Label text="No hay pistas." styleClass="subtext" /></placeholder>
+                            </TableView>
+
+                            <VBox spacing="0" styleClass="form-section">
+                                <Label text="➕ Nueva / Editar Pista" styleClass="form-section-title" />
+                                <GridPane hgap="14" vgap="12" styleClass="form-grid">
+                                    <Label text="Nombre:"         GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="field-label" />
+                                    <TextField fx:id="pistaNombreField" promptText="Ej: Pista Tenis 1"
+                                               GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="input-field" prefWidth="260" />
+
+                                    <Label text="Descripción:"    GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="field-label" />
+                                    <TextField fx:id="pistaDescField" promptText="Descripción opcional"
+                                               GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="input-field" prefWidth="260" />
+
+                                    <Label text="Precio/hora (€):" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="field-label" />
+                                    <TextField fx:id="pistaPrecioField" promptText="Ej: 15.00"
+                                               GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="input-field" prefWidth="260" />
+
+                                    <Label text="Imagen (archivo):" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="field-label" />
+                                    <TextField fx:id="pistaImagenField" promptText="tenis.png"
+                                               GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="input-field" prefWidth="260" />
+
+                                    <Label text="Deporte:"        GridPane.rowIndex="4" GridPane.columnIndex="0" styleClass="field-label" />
+                                    <ComboBox fx:id="pistaDeporteCombo"
+                                              GridPane.rowIndex="4" GridPane.columnIndex="1" prefWidth="260" styleClass="combo-box" />
+
+                                    <Label text="Estado:"         GridPane.rowIndex="5" GridPane.columnIndex="0" styleClass="field-label" />
+                                    <ComboBox fx:id="pistaEstadoCombo"
+                                              GridPane.rowIndex="5" GridPane.columnIndex="1" prefWidth="260" styleClass="combo-box" />
+                                </GridPane>
+                            </VBox>
+
+                            <Label fx:id="pistaErrorLabel" styleClass="error-label" wrapText="true" />
+                            <HBox spacing="12">
+                                <Button fx:id="pistaSaveBtn" text="💾 Guardar Pista" styleClass="btn-primary"
+                                        onAction="#onGuardarPista" prefHeight="40" mnemonicParsing="false" />
+                                <Button text="🗑️ Eliminar Pista" styleClass="btn-danger"
+                                        onAction="#onEliminarPista" prefHeight="40" mnemonicParsing="false" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </ScrollPane>
+            </Tab>
+
+            <Tab text="⚽ Deportes">
+                <ScrollPane fitToWidth="true" styleClass="scroll">
+                    <content>
+                        <VBox spacing="16" styleClass="content">
+                            <TableView fx:id="deportesTable" prefHeight="250" styleClass="table-view">
+                                <columns>
+                                    <TableColumn fx:id="colDeporteNombre"  text="Nombre"      prefWidth="200" />
+                                    <TableColumn fx:id="colDeporteDesc"    text="Descripción" prefWidth="320" />
+                                    <TableColumn fx:id="colDeporteEstado"  text="Pistas"      prefWidth="120" />
+                                </columns>
+                                <placeholder><Label text="No hay deportes." styleClass="subtext" /></placeholder>
+                            </TableView>
+
+                            <VBox spacing="0" styleClass="form-section">
+                                <Label text="➕ Nuevo Deporte" styleClass="form-section-title" />
+                                <GridPane hgap="14" vgap="12" styleClass="form-grid">
+                                    <Label text="Nombre:"      GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="field-label" />
+                                    <TextField fx:id="deporteNombreField" promptText="Ej: Pádel"
+                                               GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="input-field" prefWidth="260" />
+                                    <Label text="Descripción:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="field-label" />
+                                    <TextField fx:id="deporteDescField" promptText="Descripción opcional"
+                                               GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="input-field" prefWidth="260" />
+                                </GridPane>
+                            </VBox>
+
+                            <Label fx:id="deporteErrorLabel" styleClass="error-label" wrapText="true" />
+                            <HBox spacing="12">
+                                <Button fx:id="deporteSaveBtn" text="💾 Guardar Deporte" styleClass="btn-primary"
+                                        onAction="#onGuardarDeporte" prefHeight="40" mnemonicParsing="false" />
+                                <Button text="🗑️ Eliminar Deporte" styleClass="btn-danger"
+                                        onAction="#onEliminarDeporte" prefHeight="40" mnemonicParsing="false" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </ScrollPane>
+            </Tab>
+
+            <Tab text="📋 Reservas">
+                <VBox spacing="16" styleClass="content">
+                    <TableView fx:id="reservasTable" VBox.vgrow="ALWAYS" prefHeight="450" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colResUsuario" text="Usuario"  prefWidth="130" />
+                            <TableColumn fx:id="colResPista"   text="Pista"    prefWidth="130" />
+                            <TableColumn fx:id="colResDeporte" text="Deporte"  prefWidth="100" />
+                            <TableColumn fx:id="colResFecha"   text="Fecha"    prefWidth="100" />
+                            <TableColumn fx:id="colResHora"    text="Horario"  prefWidth="120" />
+                            <TableColumn fx:id="colResPrecio"  text="Precio"   prefWidth="80"  />
+                            <TableColumn fx:id="colResEstado"  text="Estado"   prefWidth="110" />
+                        </columns>
+                        <placeholder><Label text="No hay reservas." styleClass="subtext" /></placeholder>
+                    </TableView>
+                    <Button text="🚫 Cancelar Reserva Seleccionada" styleClass="btn-danger"
+                            onAction="#onCancelarReserva" prefHeight="40" mnemonicParsing="false" />
+                </VBox>
+            </Tab>
+
+        </TabPane>
+    </center>
+</BorderPane>

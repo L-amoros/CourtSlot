@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<BorderPane styleClass="root" stylesheets="@../css/homepage.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.courtslot.controller.HomepageController">
+
+    <!-- ══════════ NAVBAR ══════════ -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="navbar">
+
+            <!-- Logo -->
+            <Label styleClass="brand" text="CourtSlot" />
+
+            <!-- Spacer -->
+            <Region HBox.hgrow="ALWAYS" />
+
+            <!-- Iconos decorativos (corazón y filtro) -->
+            <Button focusTraversable="false" mnemonicParsing="false" styleClass="icon-btn" text="♥" />
+            <Button focusTraversable="false" mnemonicParsing="false" styleClass="icon-btn" text="☰" />
+
+            <!-- Buscador -->
+            <TextField fx:id="searchField" accessibleText="Buscar deportes o pistas" onAction="#onBuscar" prefWidth="200" promptText="Buscar pista..." styleClass="search-field" />
+            <Button accessibleText="Buscar" mnemonicParsing="false" onAction="#onBuscar" styleClass="btn-search" text="🔍" />
+
+            <!-- Mis Reservas -->
+            <Hyperlink accessibleText="Ver mis reservas" focusTraversable="true" onAction="#onMisReservas" styleClass="navlink" text="Mis Reservas" />
+
+            <!-- Botón Admin (solo visible para administradores) -->
+            <Button fx:id="adminBtn" accessibleText="Panel de administración" managed="false" mnemonicParsing="false" onAction="#onAdminPanel" styleClass="btn-admin" text="Admin" visible="false" />
+
+            <!-- Chip nombre usuario -->
+            <Label fx:id="userNameLabel" styleClass="user-chip" text="" />
+
+            <!-- Salir -->
+            <Button accessibleText="Cerrar sesión" mnemonicParsing="false" onAction="#onCerrarSesion" styleClass="btn-outline" text="Salir" />
+
+        </HBox>
+    </top>
+
+    <!-- ══════════ CONTENIDO PRINCIPAL ══════════ -->
+    <center>
+        <!-- HBox que contiene sidebar izquierdo + área central -->
+        <HBox fx:id="mainLayout" spacing="0">
+
+            <!-- ── SIDEBAR ADMIN (izquierda) ─────────────────────── -->
+            <VBox fx:id="adminSidebar" managed="false" spacing="16" styleClass="admin-sidebar" visible="false">
+
+                <!-- Widget 1: Pistas Reservadas -->
+                <VBox spacing="6" styleClass="stat-card">
+                    <Label styleClass="stat-label" text="Pistas Reservadas" />
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <VBox spacing="2">
+                            <Label fx:id="statReservadasNum" styleClass="stat-number" text="0" />
+                            <Label fx:id="statReservadasSub" styleClass="stat-sub" text="de 0 pistas totales" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="stat-icon stat-icon-green" text="📅" />
+                    </HBox>
+                </VBox>
+
+                <!-- Widget 2: Pistas Disponibles Hoy -->
+                <VBox spacing="6" styleClass="stat-card">
+                    <Label styleClass="stat-label" text="Pistas Disponibles Hoy" />
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <VBox spacing="2">
+                            <Label fx:id="statDisponiblesNum" styleClass="stat-number" text="0" />
+                            <Label fx:id="statDisponiblesSub" styleClass="stat-sub" text="0 ocupadas" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="stat-icon stat-icon-blue" text="✅" />
+                    </HBox>
+                </VBox>
+
+                <!-- Widget 3: Horario Más Reservado -->
+                <VBox spacing="6" styleClass="stat-card">
+                    <Label styleClass="stat-label" text="Horario Más Reservado" />
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <VBox spacing="2">
+                            <Label fx:id="statHorarioNum" styleClass="stat-number stat-number-sm" text="—" />
+                            <Label styleClass="stat-sub" text="Hora con mayor demanda" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="stat-icon stat-icon-purple" text="🕐" />
+                    </HBox>
+                </VBox>
+
+            </VBox>
+            <!-- ── FIN SIDEBAR ──────────────────────────────────── -->
+
+            <!-- ── ÁREA CENTRAL: hero + cards deportes ──────────── -->
+            <ScrollPane fitToWidth="true" styleClass="scroll" HBox.hgrow="ALWAYS">
+                <content>
+                    <VBox alignment="TOP_CENTER" spacing="28" styleClass="content">
+
+                        <!-- Hero -->
+                        <VBox alignment="CENTER" spacing="8" styleClass="hero">
+                            <Label styleClass="hero-title" text="Encuentra tu Pista" wrapText="true" />
+                            <Label styleClass="hero-subtitle" text="Reserva en segundos. Sin llamadas, sin esperas." wrapText="true" />
+                        </VBox>
+
+                        <!-- FlowPane con cards de deportes -->
+                        <FlowPane fx:id="cardsContainer" alignment="CENTER" hgap="20" prefWrapLength="1000" styleClass="cards" vgap="20" />
+
+                    </VBox>
+                </content>
+            </ScrollPane>
+
+        </HBox>
+    </center>
+
+</BorderPane>

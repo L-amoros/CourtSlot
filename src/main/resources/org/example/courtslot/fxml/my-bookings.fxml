@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane styleClass="root"
-            stylesheets="@../styles/homepage.css"
+            stylesheets="@../css/homepage.css"
             xmlns="http://javafx.com/javafx/17.0.12"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.example.courtslot.controller.MyBookingsController">
@@ -33,6 +33,13 @@
                    text="No tienes reservas activas. ¡Reserva una pista desde el catálogo!"
                    wrapText="true"
                    visible="false" />
+
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button text="❌ Cancelar reserva seleccionada"
+                        styleClass="btn-cancelar"
+                        onAction="#onCancelarReserva"
+                        mnemonicParsing="false" />
+            </HBox>
 
             <TableView fx:id="reservasTable"
                        VBox.vgrow="ALWAYS"

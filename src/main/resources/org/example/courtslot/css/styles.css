@@ -1,25 +1,14 @@
-/* ══════════════════════════════════════════════════
-   CourtSlot — styles.css
-   Usado en: login.fxml, register.fxml
-   Paleta: dark navy + verde esmeralda
-   ══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   styles.css — CourtSlot
+   Pantallas: login.fxml, register.fxml
+   Paleta: dark navy #070B12 + verde esmeralda #22c55e
+   ══════════════════════════════════════════════════════════════════ */
 
-/* ── Variables de color ── */
-.root {
-    -cs-bg-dark:     #070B12;
-    -cs-bg-card:     #111827;
-    -cs-bg-input:    #1f2937;
-    -cs-border:      rgba(255,255,255,0.10);
-    -cs-primary:     #22c55e;
-    -cs-primary-hov: #16a34a;
-    -cs-red:         #ef4444;
-    -cs-text:        #f8fafc;
-    -cs-muted:       #94a3b8;
-}
-
-/* ── Fondo pantalla completa ── */
+/* ── Fondo pantalla completa — degradado oscuro ── */
 .background {
     -fx-background-color: linear-gradient(to bottom right, #070B12, #0f2027, #1a3a4a);
+    -fx-min-width:  9999px;
+    -fx-min-height: 9999px;
 }
 
 /* ── Card / ventana central ── */
@@ -38,7 +27,6 @@
     -fx-font-size: 28px;
     -fx-font-weight: 900;
     -fx-text-fill: #f8fafc;
-    -fx-font-family: "Segoe UI";
 }
 
 .title {
@@ -64,7 +52,7 @@
     -fx-background-color: rgba(255,255,255,0.08);
 }
 
-/* ── Inputs ── */
+/* ── Inputs (TextField, PasswordField) ── */
 .input-field {
     -fx-background-color: #1f2937;
     -fx-text-fill: #f8fafc;
@@ -75,9 +63,9 @@
     -fx-border-width: 1px;
     -fx-padding: 10px 14px;
     -fx-font-size: 14px;
-    -fx-cursor: text;
 }
 
+/* Al enfocar el campo — borde verde con sombra sutil */
 .input-field:focused {
     -fx-border-color: #22c55e;
     -fx-border-width: 2px;
@@ -108,9 +96,9 @@
 .btn-primary:pressed {
     -fx-background-color: #15803d;
     -fx-translate-y: 1px;
-    -fx-effect: dropshadow(gaussian, rgba(34,197,94,0.20), 4, 0, 0, 2);
 }
 
+/* Botón deshabilitado — gris cuando los campos están vacíos */
 .btn-primary:disabled {
     -fx-background-color: #374151;
     -fx-text-fill: #6b7280;
@@ -118,14 +106,14 @@
     -fx-cursor: default;
 }
 
-/* Indicador de foco visible — ACCESIBILIDAD */
+/* Foco visible (accesibilidad teclado) */
 .btn-primary:focused {
     -fx-border-color: white;
     -fx-border-width: 2px;
     -fx-border-radius: 10px;
 }
 
-/* ── Hyperlinks ── */
+/* ── Hyperlinks ("Regístrate aquí") ── */
 .link {
     -fx-text-fill: #22c55e;
     -fx-font-size: 13px;
@@ -136,11 +124,6 @@
 .link:hover {
     -fx-text-fill: #4ade80;
     -fx-underline: true;
-}
-
-.link:focused {
-    -fx-border-color: #22c55e;
-    -fx-border-width: 1px;
 }
 
 /* ── Labels de feedback ── */
