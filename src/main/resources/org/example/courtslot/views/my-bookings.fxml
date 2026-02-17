@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane styleClass="root"
+            stylesheets="@../styles/homepage.css"
+            xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.courtslot.controller.MyBookingsController">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="navbar">
+            <Button styleClass="btn-back" text="← Volver"
+                    onAction="#onVolver"
+                    accessibleText="Volver al catálogo"
+                    mnemonicParsing="false" />
+            <Label styleClass="brand" text="CourtSlot · Mis Reservas" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="userNameLabel" styleClass="user-chip" text="" />
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="20" styleClass="content">
+
+            <Label styleClass="hero-title"
+                   text="Mis Reservas"
+                   style="-fx-font-size: 32px;" />
+
+            <Label fx:id="emptyLabel"
+                   styleClass="subtext"
+                   text="No tienes reservas activas. ¡Reserva una pista desde el catálogo!"
+                   wrapText="true"
+                   visible="false" />
+
+            <TableView fx:id="reservasTable"
+                       VBox.vgrow="ALWAYS"
+                       styleClass="table-view"
+                       accessibleText="Tabla de tus reservas">
+                <columns>
+                    <TableColumn fx:id="colPista"
+                                 text="Pista"
+                                 prefWidth="180"/>
+                    <TableColumn fx:id="colDeporte"
+                                 text="Deporte"
+                                 prefWidth="120" />
+                    <TableColumn fx:id="colFecha"
+                                 text="Fecha"
+                                 prefWidth="120" />
+                    <TableColumn fx:id="colHora"
+                                 text="Horario"
+                                 prefWidth="150" />
+                    <TableColumn fx:id="colPrecio"
+                                 text="Precio"
+                                 prefWidth="100" />
+                    <TableColumn fx:id="colEstado"
+                                 text="Estado"
+                                 prefWidth="110" />
+                </columns>
+                <placeholder>
+                    <Label text="No hay reservas que mostrar." styleClass="subtext" />
+                </placeholder>
+            </TableView>
+
+        </VBox>
+    </center>
+
+</BorderPane>
