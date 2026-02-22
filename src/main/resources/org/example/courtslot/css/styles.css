@@ -7,8 +7,6 @@
 /* ── Fondo pantalla completa — degradado oscuro ── */
 .background {
     -fx-background-color: linear-gradient(to bottom right, #070B12, #0f2027, #1a3a4a);
-    -fx-min-width:  9999px;
-    -fx-min-height: 9999px;
 }
 
 /* ── Card / ventana central ── */

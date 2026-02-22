@@ -1,20 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>org.example</groupId>
     <artifactId>CourtSlot</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>CourtSlot</name>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.10.0</junit.version>
     </properties>
-
     <dependencies>
+        <!--  JavaFX — igual que el tutor  -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -25,21 +22,25 @@
             <artifactId>javafx-fxml</artifactId>
             <version>21</version>
         </dependency>
+        <!--  ControlsFX — igual que el tutor  -->
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
             <version>11.1.2</version>
         </dependency>
+        <!--  Hibernate Core — igual que el tutor  -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>6.4.0.Final</version>
         </dependency>
+        <!--  JPA API — igual que el tutor  -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
             <version>3.1.0</version>
         </dependency>
+        <!--  Logger SLF4J — igual que el tutor  -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -50,11 +51,13 @@
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.9</version>
         </dependency>
+        <!--  Driver de MariaDB — 3.3.3 estable con Java 21  -->
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <version>3.4.1</version>
+            <version>3.3.3</version>
         </dependency>
+        <!--  JUnit 5  -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -68,7 +71,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
