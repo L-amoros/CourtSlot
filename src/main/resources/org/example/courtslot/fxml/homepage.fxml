@@ -18,7 +18,7 @@
 
             <!-- Iconos decorativos (corazón y filtro) -->
             <Button focusTraversable="false" mnemonicParsing="false" styleClass="icon-btn" text="♥" />
-            <Button focusTraversable="false" mnemonicParsing="false" styleClass="icon-btn" text="☰" />
+<!--            <Button focusTraversable="false" mnemonicParsing="false" styleClass="icon-btn" text="☰" />-->
 
             <!-- Buscador -->
             <TextField fx:id="searchField" accessibleText="Buscar deportes o pistas" onAction="#onBuscar" prefWidth="200" promptText="Buscar pista..." styleClass="search-field" />

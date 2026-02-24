@@ -10,7 +10,7 @@
         <property name="connection.username">root</property>
         <property name="connection.password">root</property>
         <property name="hibernate.hbm2ddl.auto">update</property>
-        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.show_sql">false</property>
         <mapping class="org.example.courtslot.model.Usuario"/>
         <mapping class="org.example.courtslot.model.Deporte"/>
         <mapping class="org.example.courtslot.model.Pista"/>

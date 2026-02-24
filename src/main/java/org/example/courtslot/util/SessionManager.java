@@ -2,6 +2,16 @@ package org.example.courtslot.util;
 
 import org.example.courtslot.model.Usuario;
 
+/**
+ * SessionManager — guarda quién está logueado en este momento.
+ *
+ * Patrón Singleton: una única instancia en toda la aplicación.
+ *
+ * USO:
+ *   SessionManager.getInstance().setUsuarioActual(usuario); // al hacer login
+ *   SessionManager.getInstance().getUsuarioActual();        // en cualquier pantalla
+ *   SessionManager.getInstance().cerrarSesion();            // al salir
+ */
 public class SessionManager {
 
     private static SessionManager instance;

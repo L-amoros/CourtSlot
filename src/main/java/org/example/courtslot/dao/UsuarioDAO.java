@@ -23,6 +23,7 @@ public class UsuarioDAO {
     }
 
     // ── Buscar por email (usado en el login) ──────────────────────────────────
+    // Usamos HQL parametrizado para evitar SQL Injection
     public Optional<Usuario> findByEmail(String email) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery(
