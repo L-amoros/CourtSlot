@@ -44,6 +44,25 @@ public class PistaService {
         return pistaDAO.findById(id);
     }
 
+    public List<Pista> getByDeporte(Long deporteId) {
+        return pistaDAO.getByDeporte(deporteId);
+    }
+
+    public int contarPorDeporte(Long deporteId) {
+        return pistaDAO.contarPorDeporte(deporteId);
+    }
+
+    public Pista getPistaMasBarata(Long deporteId) {
+        List<Pista> pistas = pistaDAO.getByDeporte(deporteId);
+        Pista pistaMasBarata = null;
+        for (Pista p : pistas) {
+            if (pistaMasBarata == null || p.getPrecioPorHora() < pistaMasBarata.getPrecioPorHora()) {
+                pistaMasBarata = p;
+            }
+        }
+        return pistaMasBarata;
+    }
+
     private void validar(Pista pista) {
         if (pista.getNombre() == null || pista.getNombre().isBlank())
             throw new IllegalArgumentException("El nombre de la pista no puede estar vacío.");

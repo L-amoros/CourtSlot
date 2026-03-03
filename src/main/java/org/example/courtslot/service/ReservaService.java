@@ -64,4 +64,32 @@ public class ReservaService {
         long horas = java.time.Duration.between(horaInicio, horaFin).toHours();
         return horas * pista.getPrecioPorHora();
     }
+    public int contarReservasEnFecha(LocalDate fecha) {
+        return reservaDAO.findByFecha(fecha).size();
+    }
+
+    public String getFranjaHorariaMasReservada() {
+        List<Reserva> todasReservas = reservaDAO.findAll();
+
+        String franjaMaxima = "—";
+        int maxContador = 0;
+
+        for (Reserva r : todasReservas) {
+            if (r.getEstado() == Reserva.Estado.CANCELADA) continue;
+
+            String franja = r.getHoraInicio().getHour() + "h / " + r.getHoraFin().getHour() + "h";
+            int contador = 0;
+            for (Reserva r2 : todasReservas) {
+                if (r2.getEstado() != Reserva.Estado.CANCELADA) {
+                    String franja2 = r2.getHoraInicio().getHour() + "h / " + r2.getHoraFin().getHour() + "h";
+                    if (franja.equals(franja2)) contador++;
+                }
+            }
+            if (contador > maxContador) {
+                maxContador = contador;
+                franjaMaxima = franja;
+            }
+        }
+        return franjaMaxima;
+    }
 }

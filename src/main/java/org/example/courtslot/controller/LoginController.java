@@ -7,21 +7,9 @@ import org.example.courtslot.service.UsuarioService;
 import org.example.courtslot.util.NavigationUtil;
 import org.example.courtslot.util.SessionManager;
 
-/**
- * LoginController — gestiona la pantalla de login.
- *
- * El tutor usa el mismo patrón en HelloController:
- *   @FXML anota los campos del FXML
- *   @FXML void onBoton() { ... } maneja los eventos
- *
- * Aquí añadimos:
- *   - Llamada al Service (en vez de lógica directa)
- *   - Navegación con NavigationUtil
- *   - Guardado de sesión con SessionManager
- */
 public class LoginController {
 
-    // ── Campos del FXML (deben tener el mismo fx:id) ──────────────────────────
+    //Campos del FXML (deben tener el mismo fx:id IMPORTANTE PUTO INUTIL)
     @FXML private TextField     emailField;
     @FXML private PasswordField passwordField;
     @FXML private Label         errorLabel;
@@ -29,31 +17,27 @@ public class LoginController {
 
     private final UsuarioService usuarioService = new UsuarioService();
 
-    // ── initialize() — se llama automáticamente al cargar el FXML ────────────
-    // El tutor no siempre lo usa, pero es el equivalente del @PostConstruct
     @FXML
     public void initialize() {
         errorLabel.setVisible(false);
-
-        // El botón de login queda deshabilitado mientras los campos estén vacíos
-        // — bind() conecta la propiedad del botón a la condición de los campos
-        loginBtn.disableProperty().bind(
-                emailField.textProperty().isEmpty()
-                        .or(passwordField.textProperty().isEmpty())
-        );
     }
 
-    // ── Botón "Iniciar sesión" ─────────────────────────────────────────────────
+    //Iniciar sesión
     @FXML
     protected void onIniciarSesion() {
         errorLabel.setVisible(false);
+
+        // Validación manual de campos vacíos
+        if (emailField.getText().trim().isEmpty() || passwordField.getText().isEmpty()) {
+            mostrarError("Por favor, rellena todos los campos.");
+            return;
+        }
+
         try {
-            // Llamamos al service — si falla lanza IllegalArgumentException
             Usuario usuario = usuarioService.login(
                     emailField.getText().trim(),
                     passwordField.getText()
             );
-            // Login correcto: guardamos sesión y navegamos al homepage
             SessionManager.getInstance().setUsuarioActual(usuario);
             NavigationUtil.navigateTo("homepage.fxml", emailField);
 
@@ -63,13 +47,13 @@ public class LoginController {
         }
     }
 
-    // ── Enlace "¿No tienes cuenta? Regístrate" ────────────────────────────────
+    //¿No tienes cuenta? Regístrate
     @FXML
     protected void onRegister() {
         NavigationUtil.navigateTo("register.fxml", emailField);
     }
 
-    // ── Ayuda privada ─────────────────────────────────────────────────────────
+    //Mensajes de error
     private void mostrarError(String msg) {
         errorLabel.setText(msg);
         errorLabel.setVisible(true);

@@ -10,7 +10,6 @@ import javafx.scene.layout.*;
 import org.example.courtslot.HelloApplication;
 import org.example.courtslot.model.Deporte;
 import org.example.courtslot.model.Pista;
-import org.example.courtslot.model.Reserva;
 import org.example.courtslot.service.DeporteService;
 import org.example.courtslot.service.PistaService;
 import org.example.courtslot.service.ReservaService;
@@ -19,12 +18,8 @@ import org.example.courtslot.util.SessionManager;
 
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 public class HomepageController implements Initializable {
 
@@ -34,8 +29,7 @@ public class HomepageController implements Initializable {
     @FXML private TextField searchField;
 
     // ── Layout principal ──────────────────────────────────────────────────────
-    @FXML private HBox      mainLayout;    // contiene sidebar + contenido central
-    @FXML private VBox      adminSidebar;  // panel izquierdo solo para admin
+    @FXML private VBox      adminSidebar;
     @FXML private FlowPane  cardsContainer;
 
     // ── Widgets de estadísticas admin ──────────────────────────────────────────
@@ -51,17 +45,13 @@ public class HomepageController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Nombre del usuario en el chip verde
         if (SessionManager.getInstance().estaLogueado()) {
             userNameLabel.setText(SessionManager.getInstance().getUsuarioActual().getNombre());
         }
 
-        // Botón Admin — solo visible si el usuario es admin
         boolean esAdmin = SessionManager.getInstance().esAdmin();
         adminBtn.setVisible(esAdmin);
         adminBtn.setManaged(esAdmin);
-
-        // Panel lateral admin — solo visible y ocupando espacio si es admin
         adminSidebar.setVisible(esAdmin);
         adminSidebar.setManaged(esAdmin);
 
@@ -93,10 +83,6 @@ public class HomepageController implements Initializable {
         }
     }
 
-    /**
-     * Crea la card visual de un Deporte.
-     * Imagen → nombre deporte → corazón favorito → botón Reservar
-     */
     private VBox crearCardDeporte(Deporte deporte) {
         VBox card = new VBox();
         card.getStyleClass().add("card");
@@ -104,7 +90,7 @@ public class HomepageController implements Initializable {
         card.setMaxWidth(230);
         card.setMinWidth(200);
 
-        // ── Imagen + corazón ──────────────────────────────────────────────────
+        // ── Imagen + badge ────────────────────────────────────────────────────
         StackPane mediaPane = new StackPane();
         mediaPane.getStyleClass().add("card-media");
         mediaPane.setPrefHeight(160);
@@ -113,21 +99,17 @@ public class HomepageController implements Initializable {
         imageView.setFitWidth(230);
         imageView.setFitHeight(160);
         imageView.setPreserveRatio(false);
-
-        // Intentar cargar imagen por nombre del deporte o icono
         cargarImagenDeporte(imageView, deporte);
 
-        // Corazón favorito (esquina inferior derecha sobre la imagen)
         Label corazon = new Label("♥");
         corazon.getStyleClass().add("heart-btn");
         StackPane.setAlignment(corazon, Pos.BOTTOM_RIGHT);
         corazon.setTranslateX(-10);
         corazon.setTranslateY(-10);
 
-        // Badge "Disponible" — solo si hay pistas activas del deporte
-        long pistasActivas = pistaService.getAll().stream()
-                .filter(p -> p.getDeporte().getId().equals(deporte.getId()))
-                .count();
+        // El service dice cuántas pistas activas tiene el deporte
+        int pistasActivas = pistaService.contarPorDeporte(deporte.getId());
+
         if (pistasActivas > 0) {
             Label badge = new Label("Disponible");
             badge.getStyleClass().addAll("badge", "badge-available");
@@ -139,14 +121,13 @@ public class HomepageController implements Initializable {
             mediaPane.getChildren().addAll(imageView, corazon);
         }
 
-        // ── Cuerpo de la card ────────────────────────────────────────────────
+        // ── Cuerpo de la card ─────────────────────────────────────────────────
         VBox body = new VBox(6);
         body.getStyleClass().add("card-body");
 
         Label titulo = new Label(deporte.getNombre());
         titulo.getStyleClass().add("card-title");
 
-        // Descripción si existe
         if (deporte.getDescripcion() != null && !deporte.getDescripcion().isBlank()) {
             Label desc = new Label(deporte.getDescripcion());
             desc.getStyleClass().add("card-subtitle");
@@ -156,17 +137,14 @@ public class HomepageController implements Initializable {
             body.getChildren().add(titulo);
         }
 
-        // Precio mínimo del deporte (de sus pistas)
-        pistaService.getAll().stream()
-                .filter(p -> p.getDeporte().getId().equals(deporte.getId()))
-                .min(Comparator.comparingDouble(Pista::getPrecioPorHora))
-                .ifPresent(p -> {
-                    Label precio = new Label(String.format("%.2f €/h", p.getPrecioPorHora()));
-                    precio.getStyleClass().add("card-price");
-                    body.getChildren().add(precio);
-                });
+        // El service devuelve directamente la pista más barata del deporte
+        Pista pistaMasBarata = pistaService.getPistaMasBarata(deporte.getId());
+        if (pistaMasBarata != null) {
+            Label precio = new Label(String.format("%.2f €/h", pistaMasBarata.getPrecioPorHora()));
+            precio.getStyleClass().add("card-price");
+            body.getChildren().add(precio);
+        }
 
-        // Botón Reservar
         Button reservarBtn = new Button("Reservar");
         reservarBtn.getStyleClass().add("btn-reservar");
         reservarBtn.setMaxWidth(Double.MAX_VALUE);
@@ -176,17 +154,10 @@ public class HomepageController implements Initializable {
 
         body.getChildren().add(reservarBtn);
         card.getChildren().addAll(mediaPane, body);
-
         return card;
     }
 
-    /**
-     * Carga imagen del deporte:
-     * 1. Busca por icono guardado en el modelo (ej. "tenis.png")
-     * 2. Si no, busca por nombre del deporte en minúsculas (ej. "futbol.png")
-     */
     private void cargarImagenDeporte(ImageView iv, Deporte deporte) {
-        // Intentar con el campo icono del deporte
         if (deporte.getIcono() != null && !deporte.getIcono().isBlank()) {
             URL imgUrl = HelloApplication.class.getResource("images/" + deporte.getIcono());
             if (imgUrl != null) {
@@ -194,7 +165,6 @@ public class HomepageController implements Initializable {
                 return;
             }
         }
-        // Fallback: nombre del deporte en minúsculas + .png
         String nombreImagen = deporte.getNombre().toLowerCase()
                 .replace(" ", "-")
                 .replace("á","a").replace("é","e").replace("í","i")
@@ -205,23 +175,16 @@ public class HomepageController implements Initializable {
         }
     }
 
-    // ── Al pulsar "Reservar" en una card de deporte ───────────────────────────
-    /**
-     * Si el deporte tiene solo 1 pista → va directo a booking.
-     * Si tiene varias → navega a la lista de pistas de ese deporte.
-     */
     private void abrirSeleccionPista(Deporte deporte) {
         if (!SessionManager.getInstance().estaLogueado()) {
             NavigationUtil.navigateTo("login.fxml", cardsContainer);
             return;
         }
 
-        List<Pista> pistas = pistaService.getAll().stream()
-                .filter(p -> p.getDeporte().getId().equals(deporte.getId()))
-                .collect(Collectors.toList());
+        // El service filtra las pistas del deporte
+        List<Pista> pistasDelDeporte = pistaService.getByDeporte(deporte.getId());
 
-        if (pistas.isEmpty()) {
-            // No hay pistas disponibles
+        if (pistasDelDeporte.isEmpty()) {
             Alert alerta = new Alert(Alert.AlertType.INFORMATION,
                     "No hay pistas disponibles para " + deporte.getNombre() + " en este momento.",
                     ButtonType.OK);
@@ -230,9 +193,10 @@ public class HomepageController implements Initializable {
             return;
         }
 
-        // Siempre pasamos el deporte — BookingController muestra todas sus pistas
         BookingController ctrl = NavigationUtil.navigateToAndGetController("booking.fxml", cardsContainer);
-        if (ctrl != null) ctrl.setDeporte(deporte);
+        if (ctrl != null) {
+            ctrl.setDeporte(deporte);
+        }
     }
 
     // ── Buscar ────────────────────────────────────────────────────────────────
@@ -241,45 +205,23 @@ public class HomepageController implements Initializable {
         cargarDeportes(searchField.getText().trim());
     }
 
-    // ── Estadísticas admin (panel lateral izquierdo) ──────────────────────────
+    // ── Estadísticas admin ────────────────────────────────────────────────────
     private void cargarEstadisticasAdmin() {
-        List<Pista>   todasPistas   = pistaService.getAll();
-        List<Reserva> todasReservas = reservaService.getAll();
-        LocalDate     hoy           = LocalDate.now();
+        List<Pista> todasPistas = pistaService.getAll();
+        LocalDate   hoy         = LocalDate.now();
 
-        // ── Stat 1: Pistas reservadas hoy ────────────────────────────────────
-        long reservadasHoy = todasReservas.stream()
-                .filter(r -> r.getFecha().equals(hoy))
-                .filter(r -> r.getEstado() != Reserva.Estado.CANCELADA)
-                .map(r -> r.getPista().getId())
-                .distinct()
-                .count();
+        // El service cuenta las reservas de hoy
+        int reservadasHoy   = reservaService.contarReservasEnFecha(hoy);
+        int disponiblesHoy  = todasPistas.size() - reservadasHoy;
+        if (disponiblesHoy < 0) disponiblesHoy = 0;
+
         statReservadasNum.setText(String.valueOf(reservadasHoy));
         statReservadasSub.setText("de " + todasPistas.size() + " pistas totales");
-
-        // ── Stat 2: Pistas disponibles hoy ───────────────────────────────────
-        long ocupadasHoy = todasReservas.stream()
-                .filter(r -> r.getFecha().equals(hoy))
-                .filter(r -> r.getEstado() != Reserva.Estado.CANCELADA)
-                .map(r -> r.getPista().getId())
-                .distinct()
-                .count();
-        long disponiblesHoy = todasPistas.size() - ocupadasHoy;
         statDisponiblesNum.setText(String.valueOf(disponiblesHoy));
-        statDisponiblesSub.setText(ocupadasHoy + " ocupadas");
+        statDisponiblesSub.setText(reservadasHoy + " ocupadas");
 
-        // ── Stat 3: Franja horaria más reservada ──────────────────────────────
-        todasReservas.stream()
-                .filter(r -> r.getEstado() != Reserva.Estado.CANCELADA)
-                .collect(Collectors.groupingBy(
-                        r -> r.getHoraInicio().getHour() + "h / " + r.getHoraFin().getHour() + "h",
-                        Collectors.counting()))
-                .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .ifPresentOrElse(
-                        entry -> statHorarioNum.setText(entry.getKey()),
-                        () -> statHorarioNum.setText("—")
-                );
+        // El service calcula la franja horaria más reservada
+        statHorarioNum.setText(reservaService.getFranjaHorariaMasReservada());
     }
 
     // ── Navegación ────────────────────────────────────────────────────────────

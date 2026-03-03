@@ -67,4 +67,29 @@ public class PistaDAO {
                     "FROM Pista p ORDER BY p.nombre", Pista.class).list();
         }
     }
+
+    // Devuelve solo las pistas activas de un deporte concreto
+    public List<Pista> getByDeporte(Long deporteId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                            "FROM Pista p WHERE p.deporte.id = :deporteId " +
+                                    "AND p.estado <> org.example.courtslot.model.Pista$Estado.DESACTIVADA " +
+                                    "ORDER BY p.nombre",
+                            Pista.class)
+                    .setParameter("deporteId", deporteId)
+                    .list();
+        }
+    }
+
+    // Devuelve el número de pistas (incluyendo desactivadas) que tiene un deporte
+    public int contarPorDeporte(Long deporteId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Long count = session.createQuery(
+                            "SELECT COUNT(p) FROM Pista p WHERE p.deporte.id = :deporteId",
+                            Long.class)
+                    .setParameter("deporteId", deporteId)
+                    .getSingleResult();
+            return count.intValue();
+        }
+    }
 }

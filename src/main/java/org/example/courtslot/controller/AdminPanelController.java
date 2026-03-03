@@ -15,6 +15,8 @@ import org.example.courtslot.service.ReservaService;
 import org.example.courtslot.util.NavigationUtil;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class AdminPanelController implements Initializable {
@@ -32,7 +34,7 @@ public class AdminPanelController implements Initializable {
     @FXML private TextField        pistaPrecioField;
     @FXML private TextField        pistaImagenField;
     @FXML private ComboBox<String> pistaDeporteCombo;
-    @FXML private ComboBox<String> pistaEstadoCombo;   // ← NUEVO
+    @FXML private ComboBox<String> pistaEstadoCombo;
     @FXML private Button           pistaSaveBtn;
     @FXML private Label            pistaErrorLabel;
 
@@ -66,11 +68,10 @@ public class AdminPanelController implements Initializable {
 
     // ══ initialize ════════════════════════════════════════════════════════════
     @Override
-    public void initialize(java.net.URL url, java.util.ResourceBundle resourceBundle) {
+    public void initialize(URL url, ResourceBundle resourceBundle) {
         pistaErrorLabel.setVisible(false);
         deporteErrorLabel.setVisible(false);
 
-        // Rellenar combo de estados de pista
         pistaEstadoCombo.getItems().addAll("ACTIVA", "MANTENIMIENTO", "DESACTIVADA");
         pistaEstadoCombo.setValue("ACTIVA");
 
@@ -82,15 +83,6 @@ public class AdminPanelController implements Initializable {
         cargarPistas();
         cargarDeportes();
         cargarReservas();
-
-        pistaSaveBtn.disableProperty().bind(
-                pistaNombreField.textProperty().isEmpty()
-                        .or(pistaPrecioField.textProperty().isEmpty())
-                        .or(pistaDeporteCombo.valueProperty().isNull())
-        );
-        deporteSaveBtn.disableProperty().bind(
-                deporteNombreField.textProperty().isEmpty()
-        );
     }
 
     // ══ PISTAS ════════════════════════════════════════════════════════════════
@@ -102,8 +94,6 @@ public class AdminPanelController implements Initializable {
         colPistaDesc.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
         colPistaPrecio.setCellValueFactory(cell ->
                 new SimpleStringProperty(String.format("%.2f €/h", cell.getValue().getPrecioPorHora())));
-
-        // Estado con emoji según valor
         colPistaActiva.setCellValueFactory(cell ->
                 new SimpleStringProperty(etiquetaEstado(cell.getValue().getEstado())));
         colPistaActiva.setCellFactory(col -> new TableCell<>() {
@@ -117,8 +107,6 @@ public class AdminPanelController implements Initializable {
                 else                                 setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
             }
         });
-
-        // Doble clic → cargar en formulario
         pistasTable.setRowFactory(tv -> {
             TableRow<Pista> row = new TableRow<>();
             row.setOnMouseClicked(e -> {
@@ -130,11 +118,9 @@ public class AdminPanelController implements Initializable {
     }
 
     private String etiquetaEstado(Pista.Estado estado) {
-        return switch (estado) {
-            case ACTIVA        -> "✅ Activa";
-            case MANTENIMIENTO -> "🔧 Mantenimiento";
-            case DESACTIVADA   -> "❌ Desactivada";
-        };
+        if (estado == Pista.Estado.ACTIVA)        return "✅ Activa";
+        if (estado == Pista.Estado.MANTENIMIENTO) return "🔧 Mantenimiento";
+        return "❌ Desactivada";
     }
 
     private void cargarPistas() {
@@ -155,14 +141,30 @@ public class AdminPanelController implements Initializable {
     @FXML
     protected void onGuardarPista() {
         pistaErrorLabel.setVisible(false);
+
+        if (pistaNombreField.getText().trim().isEmpty()) {
+            mostrarErrorPista("El nombre de la pista no puede estar vacío.");
+            return;
+        }
+        if (pistaPrecioField.getText().trim().isEmpty()) {
+            mostrarErrorPista("El precio no puede estar vacío.");
+            return;
+        }
+        if (pistaDeporteCombo.getValue() == null) {
+            mostrarErrorPista("Debes seleccionar un deporte.");
+            return;
+        }
+
         try {
             double precio = Double.parseDouble(pistaPrecioField.getText().replace(",", "."));
 
-            Deporte deporte = deporteService.getAll().stream()
-                    .filter(d -> d.getNombre().equals(pistaDeporteCombo.getValue()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Deporte no encontrado."));
-
+            // El service busca el deporte por nombre — el controller no hace la búsqueda
+            Optional<Deporte> deporteOpt = deporteService.findByNombre(pistaDeporteCombo.getValue());
+            if (deporteOpt.isEmpty()) {
+                mostrarErrorPista("Deporte no encontrado.");
+                return;
+            }
+            Deporte deporte = deporteOpt.get();
             Pista.Estado estado = Pista.Estado.valueOf(pistaEstadoCombo.getValue());
 
             if (pistaEditando != null) {
@@ -200,13 +202,21 @@ public class AdminPanelController implements Initializable {
     @FXML
     protected void onEliminarPista() {
         Pista sel = pistasTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { mostrarErrorPista("Selecciona una pista de la tabla primero."); return; }
+        if (sel == null) {
+            mostrarErrorPista("Selecciona una pista de la tabla primero.");
+            return;
+        }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "¿Eliminar la pista '" + sel.getNombre() + "'?", ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Confirmar eliminación");
         confirm.setHeaderText(null);
         confirm.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.YES) { pistaService.delete(sel.getId()); limpiarFormPista(); cargarPistas(); cargarReservas(); }
+            if (btn == ButtonType.YES) {
+                pistaService.delete(sel.getId());
+                limpiarFormPista();
+                cargarPistas();
+                cargarReservas();
+            }
         });
     }
 
@@ -231,10 +241,10 @@ public class AdminPanelController implements Initializable {
     private void configurarTablaDeportes() {
         colDeporteNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colDeporteDesc.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
+        // El service se encarga de contar las pistas de cada deporte
         colDeporteEstado.setCellValueFactory(cell -> {
-            long n = pistaService.getAllIncludingDesactivadas().stream()
-                    .filter(p -> p.getDeporte().getId().equals(cell.getValue().getId())).count();
-            return new SimpleStringProperty(n + " pista(s)");
+            int numPistas = pistaService.contarPorDeporte(cell.getValue().getId());
+            return new SimpleStringProperty(numPistas + " pista(s)");
         });
     }
 
@@ -244,16 +254,29 @@ public class AdminPanelController implements Initializable {
 
     private void cargarDeportesEnCombo() {
         pistaDeporteCombo.getItems().clear();
-        deporteService.getAll().forEach(d -> pistaDeporteCombo.getItems().add(d.getNombre()));
+        List<Deporte> deportes = deporteService.getAll();
+        for (Deporte d : deportes) {
+            pistaDeporteCombo.getItems().add(d.getNombre());
+        }
     }
 
     @FXML
     protected void onGuardarDeporte() {
         deporteErrorLabel.setVisible(false);
+
+        if (deporteNombreField.getText().trim().isEmpty()) {
+            deporteErrorLabel.setText("El nombre del deporte no puede estar vacío.");
+            deporteErrorLabel.setVisible(true);
+            return;
+        }
+
         try {
-            deporteService.save(new Deporte(
+            Deporte nuevo = new Deporte(
                     deporteNombreField.getText().trim(),
-                    deporteDescField.getText().trim(), null));
+                    deporteDescField.getText().trim(),
+                    null
+            );
+            deporteService.save(nuevo);
             deporteNombreField.clear();
             deporteDescField.clear();
             cargarDeportes();
@@ -267,13 +290,23 @@ public class AdminPanelController implements Initializable {
     @FXML
     protected void onEliminarDeporte() {
         Deporte sel = deportesTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { deporteErrorLabel.setText("Selecciona un deporte primero."); deporteErrorLabel.setVisible(true); return; }
+        if (sel == null) {
+            deporteErrorLabel.setText("Selecciona un deporte primero.");
+            deporteErrorLabel.setVisible(true);
+            return;
+        }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "¿Eliminar '" + sel.getNombre() + "'? Se eliminarán sus pistas y reservas.",
                 ButtonType.YES, ButtonType.NO);
         confirm.setHeaderText(null);
         confirm.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.YES) { deporteService.delete(sel.getId()); cargarDeportes(); cargarDeportesEnCombo(); cargarPistas(); cargarReservas(); }
+            if (btn == ButtonType.YES) {
+                deporteService.delete(sel.getId());
+                cargarDeportes();
+                cargarDeportesEnCombo();
+                cargarPistas();
+                cargarReservas();
+            }
         });
     }
 
@@ -300,11 +333,9 @@ public class AdminPanelController implements Initializable {
                 super.updateItem(item, empty);
                 if (empty || item == null) { setText(null); setStyle(""); return; }
                 setText(item);
-                switch (item) {
-                    case "CONFIRMADA" -> setStyle("-fx-text-fill: #22c55e; -fx-font-weight: bold;");
-                    case "CANCELADA"  -> setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
-                    default           -> setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
-                }
+                if (item.equals("CONFIRMADA"))      setStyle("-fx-text-fill: #22c55e; -fx-font-weight: bold;");
+                else if (item.equals("CANCELADA"))  setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
+                else                                setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
             }
         });
     }
@@ -326,7 +357,10 @@ public class AdminPanelController implements Initializable {
                 ButtonType.YES, ButtonType.NO);
         confirm.setHeaderText(null);
         confirm.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.YES) { reservaService.cancelar(sel.getId()); cargarReservas(); }
+            if (btn == ButtonType.YES) {
+                reservaService.cancelar(sel.getId());
+                cargarReservas();
+            }
         });
     }
 

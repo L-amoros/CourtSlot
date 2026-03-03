@@ -4,6 +4,7 @@ import org.example.courtslot.dao.DeporteDAO;
 import org.example.courtslot.model.Deporte;
 
 import java.util.List;
+import java.util.Optional;
 
 public class DeporteService {
 
@@ -37,5 +38,9 @@ public class DeporteService {
 
     public List<Deporte> getAll() {
         return deporteDAO.getAll();
+    }
+
+    public Optional<Deporte> findByNombre(String nombre) {
+        return deporteDAO.findByNombre(nombre);
     }
 }

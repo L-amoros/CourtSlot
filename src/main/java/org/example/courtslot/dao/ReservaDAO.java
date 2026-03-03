@@ -50,8 +50,8 @@ public class ReservaDAO {
     public List<Reserva> findByUsuario(Long usuarioId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery(
-                    "FROM Reserva r WHERE r.usuario.id = :uid ORDER BY r.fecha, r.horaInicio",
-                    Reserva.class)
+                            "FROM Reserva r WHERE r.usuario.id = :uid ORDER BY r.fecha, r.horaInicio",
+                            Reserva.class)
                     .setParameter("uid", usuarioId)
                     .list();
         }
@@ -68,11 +68,11 @@ public class ReservaDAO {
                                       LocalTime horaInicio, LocalTime horaFin) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Long count = session.createQuery(
-                    "SELECT COUNT(r) FROM Reserva r " +
-                    "WHERE r.pista.id = :pistaId AND r.fecha = :fecha " +
-                    "AND r.estado <> 'CANCELADA' " +
-                    "AND r.horaInicio < :horaFin AND r.horaFin > :horaInicio",
-                    Long.class)
+                            "SELECT COUNT(r) FROM Reserva r " +
+                                    "WHERE r.pista.id = :pistaId AND r.fecha = :fecha " +
+                                    "AND r.estado <> 'CANCELADA' " +
+                                    "AND r.horaInicio < :horaFin AND r.horaFin > :horaInicio",
+                            Long.class)
                     .setParameter("pistaId", pistaId)
                     .setParameter("fecha", fecha)
                     .setParameter("horaInicio", horaInicio)
@@ -85,10 +85,21 @@ public class ReservaDAO {
     public List<Reserva> findByPistaYFecha(Long pistaId, LocalDate fecha) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery(
-                    "FROM Reserva r WHERE r.pista.id = :pistaId AND r.fecha = :fecha " +
-                    "AND r.estado <> 'CANCELADA' ORDER BY r.horaInicio",
-                    Reserva.class)
+                            "FROM Reserva r WHERE r.pista.id = :pistaId AND r.fecha = :fecha " +
+                                    "AND r.estado <> 'CANCELADA' ORDER BY r.horaInicio",
+                            Reserva.class)
                     .setParameter("pistaId", pistaId)
+                    .setParameter("fecha", fecha)
+                    .list();
+        }
+    }
+
+    // Devuelve las reservas activas (no canceladas) de una fecha concreta
+    public List<Reserva> findByFecha(LocalDate fecha) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                            "FROM Reserva r WHERE r.fecha = :fecha AND r.estado <> 'CANCELADA'",
+                            Reserva.class)
                     .setParameter("fecha", fecha)
                     .list();
         }

@@ -6,6 +6,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.util.List;
+import java.util.Optional;
 
 public class DeporteDAO {
 
@@ -55,10 +56,20 @@ public class DeporteDAO {
     public boolean existeNombre(String nombre) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Long count = session.createQuery(
-                    "SELECT COUNT(d) FROM Deporte d WHERE d.nombre = :nombre", Long.class)
+                            "SELECT COUNT(d) FROM Deporte d WHERE d.nombre = :nombre", Long.class)
                     .setParameter("nombre", nombre)
                     .getSingleResult();
             return count > 0;
+        }
+    }
+
+    // Busca un deporte por su nombre exacto
+    public Optional<Deporte> findByNombre(String nombre) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                            "FROM Deporte d WHERE d.nombre = :nombre", Deporte.class)
+                    .setParameter("nombre", nombre)
+                    .uniqueResultOptional();
         }
     }
 }

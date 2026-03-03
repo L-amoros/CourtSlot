@@ -5,15 +5,6 @@ import javafx.scene.control.*;
 import org.example.courtslot.service.UsuarioService;
 import org.example.courtslot.util.NavigationUtil;
 
-/**
- * RegisterController — gestiona la pantalla de registro.
- *
- * Mismo patrón que LoginController / HelloController del tutor:
- *   @FXML campos, @FXML métodos de evento, llamada al service.
- *
- * Si el registro tiene éxito → muestra mensaje verde y limpia campos.
- * Si hay error          → muestra mensaje rojo con el motivo.
- */
 public class RegisterController {
 
     @FXML private TextField     nombreField;
@@ -28,20 +19,21 @@ public class RegisterController {
     @FXML
     public void initialize() {
         errorLabel.setVisible(false);
-
-        // Botón deshabilitado mientras algún campo esté vacío
-        registerBtn.disableProperty().bind(
-                nombreField.textProperty().isEmpty()
-                        .or(emailField.textProperty().isEmpty())
-                        .or(passwordField.textProperty().isEmpty())
-                        .or(confirmPasswordField.textProperty().isEmpty())
-        );
     }
 
-    // ── Botón "Crear cuenta" ──────────────────────────────────────────────────
     @FXML
     protected void onRegistrar() {
         errorLabel.setVisible(false);
+
+        // Validación manual de campos vacíos
+        if (nombreField.getText().trim().isEmpty() ||
+                emailField.getText().trim().isEmpty() ||
+                passwordField.getText().isEmpty() ||
+                confirmPasswordField.getText().isEmpty()) {
+            mostrarError("Por favor, rellena todos los campos.");
+            return;
+        }
+
         try {
             usuarioService.registrar(
                     nombreField.getText().trim(),
@@ -49,7 +41,6 @@ public class RegisterController {
                     passwordField.getText(),
                     confirmPasswordField.getText()
             );
-            // Registro exitoso — mostramos mensaje verde y limpiamos
             mostrarExito("¡Cuenta creada correctamente! Ahora puedes iniciar sesión.");
             limpiarCampos();
 
@@ -58,22 +49,22 @@ public class RegisterController {
         }
     }
 
-    // ── Enlace "¿Ya tienes cuenta? Inicia sesión" ─────────────────────────────
+    //¿Ya tienes cuenta? Inicia sesión
     @FXML
     protected void onLogin() {
         NavigationUtil.navigateTo("login.fxml", emailField);
     }
 
-    // ── Ayudas privadas ───────────────────────────────────────────────────────
+    //Mensajes de error
     private void mostrarError(String msg) {
         errorLabel.setText(msg);
-        errorLabel.setStyle("-fx-text-fill: #ef4444;"); // rojo
+        errorLabel.setStyle("-fx-text-fill: #ef4444;");
         errorLabel.setVisible(true);
     }
 
     private void mostrarExito(String msg) {
         errorLabel.setText(msg);
-        errorLabel.setStyle("-fx-text-fill: #22c55e;"); // verde
+        errorLabel.setStyle("-fx-text-fill: #22c55e;");
         errorLabel.setVisible(true);
     }
 
