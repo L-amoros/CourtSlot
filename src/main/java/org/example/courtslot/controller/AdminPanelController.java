@@ -1,11 +1,13 @@
 package org.example.courtslot.controller;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.Callback;
 import org.example.courtslot.model.Deporte;
 import org.example.courtslot.model.Pista;
 import org.example.courtslot.model.Reserva;
@@ -89,42 +91,24 @@ public class AdminPanelController implements Initializable {
 
     private void configurarTablaPistas() {
         colPistaNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
-        colPistaDeporte.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getDeporte().getNombre()));
         colPistaDesc.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
-        colPistaPrecio.setCellValueFactory(cell ->
-                new SimpleStringProperty(String.format("%.2f €/h", cell.getValue().getPrecioPorHora())));
-        colPistaActiva.setCellValueFactory(cell ->
-                new SimpleStringProperty(etiquetaEstado(cell.getValue().getEstado())));
-        colPistaActiva.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); setStyle(""); return; }
-                setText(item);
-                if (item.contains("Activa"))         setStyle("-fx-text-fill: #22c55e; -fx-font-weight: bold;");
-                else if (item.contains("Manten"))    setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
-                else                                 setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
-            }
-        });
-        pistasTable.setRowFactory(tv -> {
-            TableRow<Pista> row = new TableRow<>();
-            row.setOnMouseClicked(e -> {
-                if (e.getClickCount() == 2 && !row.isEmpty())
-                    cargarPistaEnFormulario(row.getItem());
-            });
-            return row;
-        });
-    }
-
-    private String etiquetaEstado(Pista.Estado estado) {
-        if (estado == Pista.Estado.ACTIVA)        return "✅ Activa";
-        if (estado == Pista.Estado.MANTENIMIENTO) return "🔧 Mantenimiento";
-        return "❌ Desactivada";
+        colPistaDeporte.setCellValueFactory(new PropertyValueFactory<>("nombreDeporte"));
+        colPistaPrecio.setCellValueFactory(new PropertyValueFactory<>("precioFormateado"));
+        colPistaActiva.setCellValueFactory(new PropertyValueFactory<>("estadoTexto"));
     }
 
     private void cargarPistas() {
         pistasTable.setItems(FXCollections.observableArrayList(pistaService.getAllIncludingDesactivadas()));
+
+        // Doble clic en una fila carga la pista en el formulario para editarla
+        pistasTable.setOnMouseClicked(evento -> {
+            if (evento.getClickCount() == 2) {
+                Pista sel = pistasTable.getSelectionModel().getSelectedItem();
+                if (sel != null) {
+                    cargarPistaEnFormulario(sel);
+                }
+            }
+        });
     }
 
     private void cargarPistaEnFormulario(Pista pista) {
@@ -158,7 +142,6 @@ public class AdminPanelController implements Initializable {
         try {
             double precio = Double.parseDouble(pistaPrecioField.getText().replace(",", "."));
 
-            // El service busca el deporte por nombre — el controller no hace la búsqueda
             Optional<Deporte> deporteOpt = deporteService.findByNombre(pistaDeporteCombo.getValue());
             if (deporteOpt.isEmpty()) {
                 mostrarErrorPista("Deporte no encontrado.");
@@ -210,14 +193,14 @@ public class AdminPanelController implements Initializable {
                 "¿Eliminar la pista '" + sel.getNombre() + "'?", ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Confirmar eliminación");
         confirm.setHeaderText(null);
-        confirm.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.YES) {
-                pistaService.delete(sel.getId());
-                limpiarFormPista();
-                cargarPistas();
-                cargarReservas();
-            }
-        });
+
+        Optional<ButtonType> resultado = confirm.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
+            pistaService.delete(sel.getId());
+            limpiarFormPista();
+            cargarPistas();
+            cargarReservas();
+        }
     }
 
     private void limpiarFormPista() {
@@ -241,10 +224,15 @@ public class AdminPanelController implements Initializable {
     private void configurarTablaDeportes() {
         colDeporteNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colDeporteDesc.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
-        // El service se encarga de contar las pistas de cada deporte
-        colDeporteEstado.setCellValueFactory(cell -> {
-            int numPistas = pistaService.contarPorDeporte(cell.getValue().getId());
-            return new SimpleStringProperty(numPistas + " pista(s)");
+
+        // Esta columna necesita Callback porque consulta el service, no un getter del modelo
+        colDeporteEstado.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Deporte, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Deporte, String> cellData) {
+                Deporte deporte = cellData.getValue();
+                int numPistas = pistaService.contarPorDeporte(deporte.getId());
+                return new SimpleStringProperty(numPistas + " pista(s)");
+            }
         });
     }
 
@@ -299,45 +287,27 @@ public class AdminPanelController implements Initializable {
                 "¿Eliminar '" + sel.getNombre() + "'? Se eliminarán sus pistas y reservas.",
                 ButtonType.YES, ButtonType.NO);
         confirm.setHeaderText(null);
-        confirm.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.YES) {
-                deporteService.delete(sel.getId());
-                cargarDeportes();
-                cargarDeportesEnCombo();
-                cargarPistas();
-                cargarReservas();
-            }
-        });
+
+        Optional<ButtonType> resultado = confirm.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
+            deporteService.delete(sel.getId());
+            cargarDeportes();
+            cargarDeportesEnCombo();
+            cargarPistas();
+            cargarReservas();
+        }
     }
 
     // ══ RESERVAS ══════════════════════════════════════════════════════════════
 
     private void configurarTablaReservas() {
-        colResUsuario.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getUsuario().getNombre()));
-        colResPista.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getPista().getNombre()));
-        colResDeporte.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getPista().getDeporte().getNombre()));
-        colResFecha.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getFecha().toString()));
-        colResHora.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getHoraInicio() + " - " + cell.getValue().getHoraFin()));
-        colResPrecio.setCellValueFactory(cell ->
-                new SimpleStringProperty(String.format("%.2f €", cell.getValue().getPrecioTotal())));
-        colResEstado.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getEstado().name()));
-        colResEstado.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); setStyle(""); return; }
-                setText(item);
-                if (item.equals("CONFIRMADA"))      setStyle("-fx-text-fill: #22c55e; -fx-font-weight: bold;");
-                else if (item.equals("CANCELADA"))  setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
-                else                                setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
-            }
-        });
+        colResUsuario.setCellValueFactory(new PropertyValueFactory<>("nombreUsuario"));
+        colResPista.setCellValueFactory(new PropertyValueFactory<>("nombrePista"));
+        colResDeporte.setCellValueFactory(new PropertyValueFactory<>("nombreDeporte"));
+        colResFecha.setCellValueFactory(new PropertyValueFactory<>("fecha"));
+        colResHora.setCellValueFactory(new PropertyValueFactory<>("horario"));
+        colResPrecio.setCellValueFactory(new PropertyValueFactory<>("precioFormateado"));
+        colResEstado.setCellValueFactory(new PropertyValueFactory<>("estadoTexto"));
     }
 
     private void cargarReservas() {
@@ -356,12 +326,12 @@ public class AdminPanelController implements Initializable {
                 "¿Cancelar la reserva de " + sel.getUsuario().getNombre() + " — " + sel.getPista().getNombre() + "?",
                 ButtonType.YES, ButtonType.NO);
         confirm.setHeaderText(null);
-        confirm.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.YES) {
-                reservaService.cancelar(sel.getId());
-                cargarReservas();
-            }
-        });
+
+        Optional<ButtonType> resultado = confirm.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
+            reservaService.cancelar(sel.getId());
+            cargarReservas();
+        }
     }
 
     // ══ Navegación ════════════════════════════════════════════════════════════

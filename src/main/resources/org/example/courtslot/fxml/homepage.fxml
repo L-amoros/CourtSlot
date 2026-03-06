@@ -17,7 +17,7 @@
             <Region HBox.hgrow="ALWAYS" />
 
             <!-- Iconos decorativos (corazón y filtro) -->
-            <Button focusTraversable="false" mnemonicParsing="false" styleClass="icon-btn" text="♥" />
+<!--            <Button focusTraversable="false" mnemonicParsing="false" styleClass="icon-btn" text="♥" />-->
 <!--            <Button focusTraversable="false" mnemonicParsing="false" styleClass="icon-btn" text="☰" />-->
 
             <!-- Buscador -->

@@ -20,6 +20,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class BookingController implements Initializable {
@@ -30,8 +31,8 @@ public class BookingController implements Initializable {
     @FXML private VBox   pistasContainer;
     @FXML private Label  tituloLabel;
 
-    private Deporte    deporteSeleccionado;
-    private LocalDate  fechaActual = LocalDate.now();
+    private Deporte   deporteSeleccionado;
+    private LocalDate fechaActual = LocalDate.now();
 
     private final PistaService   pistaService   = new PistaService();
     private final ReservaService reservaService = new ReservaService();
@@ -40,195 +41,191 @@ public class BookingController implements Initializable {
     private static final LocalTime HORA_CIERRE   = LocalTime.of(21, 0);
     private static final DateTimeFormatter FMT_FECHA =
             DateTimeFormatter.ofPattern("EEE, d MMM yyyy", new Locale("es", "ES"));
+    private static final DateTimeFormatter FMT_CORTA =
+            DateTimeFormatter.ofPattern("d MMM yyyy", new Locale("es", "ES"));
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         actualizarFechaLabel();
     }
 
+    // Recibe el deporte desde HomepageController y carga la pantalla
     public void setDeporte(Deporte deporte) {
         this.deporteSeleccionado = deporte;
         tituloLabel.setText("Reserva de Pistas · " + deporte.getNombre());
         cargarPistas();
     }
 
-    // ── Carga de pistas ───────────────────────────────────────────────────────
+    // ── Rellena el contenedor con una fila por cada pista ────────────────────
 
     private void cargarPistas() {
-        // El service filtra las pistas activas del deporte seleccionado
-        List<Pista> pistasDelDeporte = pistaService.getByDeporte(deporteSeleccionado.getId());
-
         pistasContainer.getChildren().clear();
 
+        List<Pista> pistasDelDeporte = pistaService.getByDeporte(deporteSeleccionado.getId());
+
         if (pistasDelDeporte.isEmpty()) {
-            Label empty = new Label("No hay pistas disponibles para este deporte.");
-            empty.setStyle("-fx-text-fill: rgba(255,255,255,0.45); -fx-font-size: 14px;");
-            pistasContainer.getChildren().add(empty);
+            Label aviso = new Label("No hay pistas disponibles para este deporte.");
+            pistasContainer.getChildren().add(aviso);
             return;
         }
 
         for (Pista pista : pistasDelDeporte) {
-            pistasContainer.getChildren().add(crearFilaPista(pista));
+            VBox filaPista = crearFilaPista(pista);
+            pistasContainer.getChildren().add(filaPista);
         }
     }
 
-    // ── Construye la fila visual de una pista con sus slots horarios ──────────
+    // ── Crea la fila visual de una pista: nombre + botones de hora ───────────
 
     private VBox crearFilaPista(Pista pista) {
-        VBox fila = new VBox(10);
-        fila.getStyleClass().add("pista-row");
 
-        Label nombre = new Label(pista.getNombre());
-        nombre.getStyleClass().add("pista-nombre");
+        // Etiqueta con el nombre de la pista
+        Label lblNombre = new Label(pista.getNombre());
 
-        String textoDesc = (pista.getDescripcion() != null && !pista.getDescripcion().isBlank())
-                ? pista.getDescripcion()
-                : String.format("%.2f €/h", pista.getPrecioPorHora());
-        Label desc = new Label(textoDesc);
-        desc.getStyleClass().add("pista-desc");
+        // Etiqueta con descripción o precio si no hay descripción
+        String textoDesc;
+        if (pista.getDescripcion() != null && !pista.getDescripcion().isBlank()) {
+            textoDesc = pista.getDescripcion();
+        } else {
+            textoDesc = String.format("%.2f €/h", pista.getPrecioPorHora());
+        }
+        Label lblDesc = new Label(textoDesc);
 
-        VBox cabecera = new VBox(2, nombre, desc);
+        VBox cabecera = new VBox(2, lblNombre, lblDesc);
 
-        HBox slots = new HBox(6);
-        slots.setAlignment(Pos.CENTER_LEFT);
-        slots.getStyleClass().add("slots-row");
+        // Fila de botones de hora
+        HBox filaSlots = new HBox(6);
+        filaSlots.setAlignment(Pos.CENTER_LEFT);
 
-        // El service devuelve las reservas que bloquean slots para esta pista y fecha
-        List<Reserva> bloqueados = reservaService.getSlotsBloqueados(pista.getId(), fechaActual);
+        // Reservas que ya ocupan slots en esta pista y fecha
+        List<Reserva> reservasOcupadas = reservaService.getSlotsBloqueados(pista.getId(), fechaActual);
 
-        Long usuarioActualId = null;
+        // ID del usuario logueado para saber si una reserva es suya
+        Long idUsuarioActual = null;
         if (SessionManager.getInstance().estaLogueado()) {
-            usuarioActualId = SessionManager.getInstance().getUsuarioActual().getId();
+            idUsuarioActual = SessionManager.getInstance().getUsuarioActual().getId();
         }
 
-        // Recorrer hora a hora desde apertura hasta cierre
+        // Crear un botón por cada hora entre apertura y cierre
         LocalTime hora = HORA_APERTURA;
         while (hora.isBefore(HORA_CIERRE)) {
-            final LocalTime slotInicio = hora;
-            final LocalTime slotFin    = hora.plusHours(1);
 
-            // Buscar si alguna reserva ocupa este slot
-            Reserva reservaSolapa = null;
-            for (Reserva r : bloqueados) {
+            LocalTime slotInicio = hora;
+            LocalTime slotFin    = hora.plusHours(1);
+
+            // Buscar si este slot está ocupado por alguna reserva
+            Reserva reservaEnEsteSlot = null;
+            for (Reserva r : reservasOcupadas) {
                 if (r.getHoraInicio().isBefore(slotFin) && r.getHoraFin().isAfter(slotInicio)) {
-                    reservaSolapa = r;
+                    reservaEnEsteSlot = r;
                     break;
                 }
             }
 
-            Button btn = new Button();
-            btn.getStyleClass().add("slot-btn");
-            btn.setPrefWidth(80);
-            btn.setPrefHeight(50);
+            Button btnSlot = crearBotonSlot(pista, slotInicio, slotFin, reservaEnEsteSlot, idUsuarioActual);
+            filaSlots.getChildren().add(btnSlot);
 
-            if (reservaSolapa != null) {
-                boolean esMia = usuarioActualId != null
-                        && reservaSolapa.getUsuario().getId().equals(usuarioActualId);
-
-                if (esMia) {
-                    btn.setText("⚑\nMi reserva");
-                    btn.getStyleClass().add("slot-mio");
-                    btn.setCursor(javafx.scene.Cursor.HAND);
-                    final Reserva reservaACancelar = reservaSolapa;
-                    btn.setOnAction(e -> cancelarMiReservaDesdeSlot(reservaACancelar, btn));
-                } else {
-                    btn.setText("✓\nOcupado");
-                    btn.getStyleClass().add("slot-ocupado");
-                    btn.setMouseTransparent(true);
-                }
-            } else {
-                btn.setText(slotInicio.toString());
-                btn.getStyleClass().add("slot-libre");
-                btn.setCursor(javafx.scene.Cursor.HAND);
-                btn.setOnAction(e -> confirmarReserva(pista, slotInicio, slotFin, btn));
-            }
-
-            slots.getChildren().add(btn);
             hora = hora.plusHours(1);
         }
 
-        fila.getChildren().addAll(cabecera, slots);
+        VBox fila = new VBox(10, cabecera, filaSlots);
         return fila;
     }
 
-    // ── Cancelar reserva propia desde un slot naranja ─────────────────────────
+    // ── Crea un botón de slot según su estado: libre, mío u ocupado ──────────
 
-    private void cancelarMiReservaDesdeSlot(Reserva reserva, Button btn) {
-        DateTimeFormatter fmtCorta = DateTimeFormatter.ofPattern("d MMM yyyy", new Locale("es"));
+    private Button crearBotonSlot(Pista pista, LocalTime slotInicio, LocalTime slotFin,
+                                  Reserva reservaEnEsteSlot, Long idUsuarioActual) {
+        Button btn = new Button();
+        btn.setPrefWidth(80);
+        btn.setPrefHeight(50);
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                String.format("¿Cancelar tu reserva de %s\nel %s de %s a %s?",
-                        reserva.getPista().getNombre(),
-                        fechaActual.format(fmtCorta),
-                        reserva.getHoraInicio(),
-                        reserva.getHoraFin()),
-                ButtonType.YES, ButtonType.NO);
-        confirm.setTitle("Cancelar reserva");
-        confirm.setHeaderText(null);
+        if (reservaEnEsteSlot == null) {
+            // Slot libre — se puede reservar
+            btn.setText(slotInicio.toString());
+            btn.setStyle("-fx-background-color: #22c55e; -fx-text-fill: white;");
+            btn.setOnAction(e -> onClickSlotLibre(pista, slotInicio, slotFin, btn));
 
-        confirm.showAndWait().ifPresent(b -> {
-            if (b == ButtonType.YES) {
-                reservaService.cancelar(reserva.getId());
+        } else if (idUsuarioActual != null && reservaEnEsteSlot.getUsuario().getId().equals(idUsuarioActual)) {
+            // Slot con mi propia reserva — se puede cancelar
+            btn.setText("Mi reserva\n" + slotInicio);
+            btn.setStyle("-fx-background-color: #f59e0b; -fx-text-fill: white;");
+            Reserva reservaACancelar = reservaEnEsteSlot;
+            btn.setOnAction(e -> onClickMiReserva(reservaACancelar, btn, slotInicio, slotFin, pista));
 
-                btn.setText(reserva.getHoraInicio().toString());
-                btn.getStyleClass().remove("slot-mio");
-                btn.getStyleClass().add("slot-libre");
-                btn.setCursor(javafx.scene.Cursor.HAND);
-                btn.setMouseTransparent(false);
-                btn.setOnAction(e -> confirmarReserva(
-                        reserva.getPista(),
-                        reserva.getHoraInicio(),
-                        reserva.getHoraFin(),
-                        btn
-                ));
+        } else {
+            // Slot ocupado por otro usuario — no se puede hacer nada
+            btn.setText("Ocupado\n" + slotInicio);
+            btn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;");
+            btn.setDisable(true);
+        }
 
-                new Alert(Alert.AlertType.INFORMATION, "Reserva cancelada correctamente.", ButtonType.OK).showAndWait();
-            }
-        });
+        return btn;
     }
 
-    // ── Confirmar reserva al pulsar un slot libre ─────────────────────────────
+    // ── Al pulsar un slot libre: confirmar y crear la reserva ────────────────
 
-    private void confirmarReserva(Pista pista, LocalTime inicio, LocalTime fin, Button btnPulsado) {
+    private void onClickSlotLibre(Pista pista, LocalTime inicio, LocalTime fin, Button btnPulsado) {
         if (!SessionManager.getInstance().estaLogueado()) {
             NavigationUtil.navigateTo("login.fxml", pistasContainer);
             return;
         }
 
-        DateTimeFormatter fmtCorta = DateTimeFormatter.ofPattern("d MMM yyyy", new Locale("es"));
         double precio = reservaService.calcularPrecio(pista, inicio, fin);
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                String.format("¿Reservar %s el %s de %s a %s?\nPrecio: %.2f €",
-                        pista.getNombre(),
-                        fechaActual.format(fmtCorta),
-                        inicio, fin,
-                        precio),
+                "¿Reservar " + pista.getNombre() + " el " + fechaActual.format(FMT_CORTA)
+                        + " de " + inicio + " a " + fin + "?\nPrecio: " + String.format("%.2f €", precio),
                 ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Confirmar reserva");
         confirm.setHeaderText(null);
 
-        confirm.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.YES) {
-                try {
-                    Usuario usuario = SessionManager.getInstance().getUsuarioActual();
-                    reservaService.crear(usuario, pista, fechaActual, inicio, fin);
+        Optional<ButtonType> resultado = confirm.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
+            try {
+                Usuario usuario = SessionManager.getInstance().getUsuarioActual();
+                reservaService.crear(usuario, pista, fechaActual, inicio, fin);
 
-                    btnPulsado.setText("✓\nOcupado");
-                    btnPulsado.getStyleClass().remove("slot-libre");
-                    btnPulsado.getStyleClass().add("slot-ocupado");
-                    btnPulsado.setMouseTransparent(true);
+                // Marcar el botón como ocupado visualmente
+                btnPulsado.setText("Ocupado\n" + inicio);
+                btnPulsado.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;");
+                btnPulsado.setDisable(true);
 
-                    new Alert(Alert.AlertType.INFORMATION,
-                            "¡Reserva confirmada! " + pista.getNombre() + " · " + inicio + " - " + fin,
-                            ButtonType.OK).showAndWait();
+                new Alert(Alert.AlertType.INFORMATION,
+                        "¡Reserva confirmada! " + pista.getNombre() + " · " + inicio + " - " + fin,
+                        ButtonType.OK).showAndWait();
 
-                } catch (IllegalArgumentException e) {
-                    new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.OK).showAndWait();
-                    cargarPistas();
-                }
+            } catch (IllegalArgumentException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.OK).showAndWait();
+                cargarPistas();
             }
-        });
+        }
+    }
+
+    // ── Al pulsar mi reserva (naranja): confirmar cancelación ────────────────
+
+    private void onClickMiReserva(Reserva reserva, Button btn,
+                                  LocalTime slotInicio, LocalTime slotFin, Pista pista) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "¿Cancelar tu reserva de " + reserva.getPista().getNombre()
+                        + " el " + fechaActual.format(FMT_CORTA)
+                        + " de " + reserva.getHoraInicio() + " a " + reserva.getHoraFin() + "?",
+                ButtonType.YES, ButtonType.NO);
+        confirm.setTitle("Cancelar reserva");
+        confirm.setHeaderText(null);
+
+        Optional<ButtonType> resultado = confirm.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
+            reservaService.cancelar(reserva.getId());
+
+            // Volver a mostrar el botón como libre
+            btn.setText(slotInicio.toString());
+            btn.setStyle("-fx-background-color: #22c55e; -fx-text-fill: white;");
+            btn.setDisable(false);
+            btn.setOnAction(e -> onClickSlotLibre(pista, slotInicio, slotFin, btn));
+
+            new Alert(Alert.AlertType.INFORMATION, "Reserva cancelada.", ButtonType.OK).showAndWait();
+        }
     }
 
     // ── Navegación por fechas ─────────────────────────────────────────────────

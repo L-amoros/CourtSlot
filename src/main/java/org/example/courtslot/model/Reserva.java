@@ -68,4 +68,28 @@ public class Reserva {
     public void setPrecioTotal(Double p)       { this.precioTotal = p; }
     public Estado getEstado()                  { return estado; }
     public void setEstado(Estado estado)       { this.estado = estado; }
+
+    public String getNombreUsuario() {
+        return usuario != null ? usuario.getNombre() : "";
+    }
+
+    public String getNombrePista() {
+        return pista != null ? pista.getNombre() : "";
+    }
+
+    public String getNombreDeporte() {
+        return pista != null ? pista.getDeporte().getNombre() : "";
+    }
+
+    public String getHorario() {
+        return horaInicio + " - " + horaFin;
+    }
+
+    public String getPrecioFormateado() {
+        return String.format("%.2f €", precioTotal);
+    }
+
+    public String getEstadoTexto() {
+        return estado.name();
+    }
 }

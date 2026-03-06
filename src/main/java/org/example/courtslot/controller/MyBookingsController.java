@@ -1,10 +1,10 @@
 package org.example.courtslot.controller;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.courtslot.model.Reserva;
 import org.example.courtslot.service.ReservaService;
 import org.example.courtslot.util.NavigationUtil;
@@ -14,6 +14,7 @@ import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class MyBookingsController implements Initializable {
@@ -35,7 +36,6 @@ public class MyBookingsController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Nombre del usuario en el chip de la navbar
         if (SessionManager.getInstance().estaLogueado()) {
             userNameLabel.setText(SessionManager.getInstance().getUsuarioActual().getNombre());
         }
@@ -47,40 +47,12 @@ public class MyBookingsController implements Initializable {
     // ── Configurar columnas ───────────────────────────────────────────────────
 
     private void configurarTabla() {
-
-        colPista.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getPista().getNombre()));
-
-        colDeporte.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getPista().getDeporte().getNombre()));
-
-        colFecha.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getFecha().format(FMT_FECHA)));
-
-        colHora.setCellValueFactory(cell -> {
-            Reserva r = cell.getValue();
-            return new SimpleStringProperty(r.getHoraInicio() + " – " + r.getHoraFin());
-        });
-
-        colPrecio.setCellValueFactory(cell ->
-                new SimpleStringProperty(String.format("%.2f €", cell.getValue().getPrecioTotal())));
-
-        // Estado con color según valor
-        colEstado.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getEstado().name()));
-        colEstado.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); setStyle(""); return; }
-                setText(item);
-                switch (item) {
-                    case "CONFIRMADA" -> setStyle("-fx-text-fill: #22c55e; -fx-font-weight: bold;");
-                    case "CANCELADA"  -> setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
-                    default           -> setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
-                }
-            }
-        });
+        colPista.setCellValueFactory(new PropertyValueFactory<>("nombrePista"));
+        colDeporte.setCellValueFactory(new PropertyValueFactory<>("nombreDeporte"));
+        colFecha.setCellValueFactory(new PropertyValueFactory<>("fecha"));
+        colHora.setCellValueFactory(new PropertyValueFactory<>("horario"));
+        colPrecio.setCellValueFactory(new PropertyValueFactory<>("precioFormateado"));
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estadoTexto"));
     }
 
     // ── Cargar reservas del usuario logueado ──────────────────────────────────
@@ -105,13 +77,11 @@ public class MyBookingsController implements Initializable {
     protected void onCancelarReserva() {
         Reserva sel = reservasTable.getSelectionModel().getSelectedItem();
         if (sel == null) {
-            new Alert(Alert.AlertType.WARNING, "Selecciona una reserva primero.", ButtonType.OK)
-                    .showAndWait();
+            new Alert(Alert.AlertType.WARNING, "Selecciona una reserva primero.", ButtonType.OK).showAndWait();
             return;
         }
         if (sel.getEstado() == Reserva.Estado.CANCELADA) {
-            new Alert(Alert.AlertType.INFORMATION, "Esta reserva ya está cancelada.", ButtonType.OK)
-                    .showAndWait();
+            new Alert(Alert.AlertType.INFORMATION, "Esta reserva ya está cancelada.", ButtonType.OK).showAndWait();
             return;
         }
 
@@ -125,12 +95,11 @@ public class MyBookingsController implements Initializable {
         confirm.setTitle("Cancelar reserva");
         confirm.setHeaderText(null);
 
-        confirm.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.YES) {
-                reservaService.cancelar(sel.getId());
-                cargarReservas();
-            }
-        });
+        Optional<ButtonType> resultado = confirm.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
+            reservaService.cancelar(sel.getId());
+            cargarReservas();
+        }
     }
 
     // ── Navegación ────────────────────────────────────────────────────────────

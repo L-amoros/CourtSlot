@@ -72,6 +72,20 @@ public class Pista {
     public Estado getEstado()                       { return estado; }
     public void setEstado(Estado estado)            { this.estado = estado; }
 
+    public String getNombreDeporte() {
+        return deporte != null ? deporte.getNombre() : "";
+    }
+
+    public String getPrecioFormateado() {
+        return String.format("%.2f €/h", precioPorHora);
+    }
+
+    public String getEstadoTexto() {
+        if (estado == Estado.ACTIVA)        return "✅ Activa";
+        if (estado == Estado.MANTENIMIENTO) return "🔧 Mantenimiento";
+        return "❌ Desactivada";
+    }
+
     // Compatibilidad con código que usaba getActiva()
     public Boolean getActiva() { return estado == Estado.ACTIVA; }
     public void setActiva(Boolean ACTIVA) {
