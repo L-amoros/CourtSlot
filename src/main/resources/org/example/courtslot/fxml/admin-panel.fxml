@@ -113,7 +113,21 @@
             </Tab>
 
             <Tab text="📋 Reservas">
-                <VBox spacing="16" styleClass="content">
+                <VBox spacing="12" styleClass="content">
+
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <TextField fx:id="resSearchField"
+                                   promptText="🔍 Usuario, pista o deporte..."
+                                   prefWidth="220" />
+                        <ComboBox fx:id="resFiltroEstado" prefWidth="150" />
+                        <DatePicker fx:id="resFiltroFecha"
+                                    promptText="Filtrar por fecha"
+                                    showWeekNumbers="false" />
+                        <Button text="✖ Limpiar"
+                                onAction="#onLimpiarFiltrosReservas"
+                                mnemonicParsing="false" />
+                    </HBox>
+
                     <TableView fx:id="reservasTable" VBox.vgrow="ALWAYS" prefHeight="450" styleClass="table-view">
                         <columns>
                             <TableColumn fx:id="colResUsuario" text="Usuario"  prefWidth="130" />
@@ -128,6 +142,32 @@
                     </TableView>
                     <Button text="🚫 Cancelar Reserva Seleccionada" styleClass="btn-danger"
                             onAction="#onCancelarReserva" prefHeight="40" mnemonicParsing="false" />
+                </VBox>
+            </Tab>
+
+            <Tab text="👤 Usuarios">
+                <VBox spacing="12" styleClass="content">
+
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <TextField fx:id="usuSearchField"
+                                   promptText="🔍 Buscar por nombre o email..."
+                                   prefWidth="280" />
+                        <Button text="✖ Limpiar"
+                                onAction="#onLimpiarFiltroUsuarios"
+                                mnemonicParsing="false" />
+                    </HBox>
+
+                    <TableView fx:id="usuariosTable" VBox.vgrow="ALWAYS" prefHeight="400" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colUsuNombre" text="Nombre" prefWidth="200" />
+                            <TableColumn fx:id="colUsuEmail"  text="Email"  prefWidth="250" />
+                            <TableColumn fx:id="colUsuRol"    text="Rol"    prefWidth="120" />
+                        </columns>
+                        <placeholder><Label text="No hay usuarios." styleClass="subtext" /></placeholder>
+                    </TableView>
+
+                    <Button text="🗑️ Eliminar Usuario Seleccionado" styleClass="btn-danger"
+                            onAction="#onEliminarUsuario" prefHeight="40" mnemonicParsing="false" />
                 </VBox>
             </Tab>
 

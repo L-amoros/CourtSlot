@@ -5,16 +5,16 @@ import org.example.courtslot.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.util.List;
 import java.util.Optional;
 
 public class UsuarioDAO {
 
-    // ── Guardar nuevo usuario ─────────────────────────────────────────────────
     public void save(Usuario usuario) {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            session.persist(usuario);      // INSERT en BD
+            session.persist(usuario);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
@@ -22,8 +22,6 @@ public class UsuarioDAO {
         }
     }
 
-    // ── Buscar por email (usado en el login) ──────────────────────────────────
-    // Usamos HQL parametrizado para evitar SQL Injection
     public Optional<Usuario> findByEmail(String email) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery(
@@ -33,7 +31,6 @@ public class UsuarioDAO {
         }
     }
 
-    // ── Comprobar si ya existe un email (usado en el registro) ────────────────
     public boolean existeEmail(String email) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Long count = session.createQuery(
@@ -41,6 +38,20 @@ public class UsuarioDAO {
                     .setParameter("email", email)
                     .getSingleResult();
             return count > 0;
+        }
+    }
+    public List<Usuario> findAll() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("FROM Usuario", Usuario.class).list();
+        }
+    }
+
+    public void delete(Long id) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction tx = session.beginTransaction();
+            Usuario u = session.get(Usuario.class, id);
+            if (u != null) session.remove(u);
+            tx.commit();
         }
     }
 }

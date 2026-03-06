@@ -11,19 +11,22 @@ import javafx.util.Callback;
 import org.example.courtslot.model.Deporte;
 import org.example.courtslot.model.Pista;
 import org.example.courtslot.model.Reserva;
+import org.example.courtslot.model.Usuario;
 import org.example.courtslot.service.DeporteService;
 import org.example.courtslot.service.PistaService;
 import org.example.courtslot.service.ReservaService;
+import org.example.courtslot.service.UsuarioService;
 import org.example.courtslot.util.NavigationUtil;
 
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class AdminPanelController implements Initializable {
 
-    // ══ TAB PISTAS ════════════════════════════════════════════════════════════
     @FXML private TableView<Pista>          pistasTable;
     @FXML private TableColumn<Pista,String> colPistaNombre;
     @FXML private TableColumn<Pista,String> colPistaDeporte;
@@ -40,7 +43,6 @@ public class AdminPanelController implements Initializable {
     @FXML private Button           pistaSaveBtn;
     @FXML private Label            pistaErrorLabel;
 
-    // ══ TAB DEPORTES ══════════════════════════════════════════════════════════
     @FXML private TableView<Deporte>          deportesTable;
     @FXML private TableColumn<Deporte,String> colDeporteNombre;
     @FXML private TableColumn<Deporte,String> colDeporteDesc;
@@ -51,24 +53,37 @@ public class AdminPanelController implements Initializable {
     @FXML private Button    deporteSaveBtn;
     @FXML private Label     deporteErrorLabel;
 
-    // ══ TAB RESERVAS ══════════════════════════════════════════════════════════
-    @FXML private TableView<Reserva>           reservasTable;
-    @FXML private TableColumn<Reserva,String>  colResUsuario;
-    @FXML private TableColumn<Reserva,String>  colResPista;
-    @FXML private TableColumn<Reserva,String>  colResDeporte;
-    @FXML private TableColumn<Reserva,String>  colResFecha;
-    @FXML private TableColumn<Reserva,String>  colResHora;
-    @FXML private TableColumn<Reserva,String>  colResPrecio;
-    @FXML private TableColumn<Reserva,String>  colResEstado;
+    @FXML private TableView<Reserva>          reservasTable;
+    @FXML private TableColumn<Reserva,String> colResUsuario;
+    @FXML private TableColumn<Reserva,String> colResPista;
+    @FXML private TableColumn<Reserva,String> colResDeporte;
+    @FXML private TableColumn<Reserva,String> colResFecha;
+    @FXML private TableColumn<Reserva,String> colResHora;
+    @FXML private TableColumn<Reserva,String> colResPrecio;
+    @FXML private TableColumn<Reserva,String> colResEstado;
 
-    // ══ Servicios ═════════════════════════════════════════════════════════════
-    private final PistaService   pistaService   = new PistaService();
-    private final DeporteService deporteService = new DeporteService();
-    private final ReservaService reservaService = new ReservaService();
+    @FXML private TextField        resSearchField;
+    @FXML private ComboBox<String> resFiltroEstado;
+    @FXML private DatePicker       resFiltroFecha;
+
+    private List<Reserva> todasLasReservas;
+
+    @FXML private TableView<Usuario>           usuariosTable;
+    @FXML private TableColumn<Usuario,String>  colUsuNombre;
+    @FXML private TableColumn<Usuario,String>  colUsuEmail;
+    @FXML private TableColumn<Usuario,String>  colUsuRol;
+
+    @FXML private TextField usuSearchField;
+
+    private List<Usuario> todosLosUsuarios;
+
+    private final PistaService    pistaService    = new PistaService();
+    private final DeporteService  deporteService  = new DeporteService();
+    private final ReservaService  reservaService  = new ReservaService();
+    private final UsuarioService  usuarioService  = new UsuarioService();
 
     private Pista pistaEditando = null;
 
-    // ══ initialize ════════════════════════════════════════════════════════════
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         pistaErrorLabel.setVisible(false);
@@ -80,14 +95,14 @@ public class AdminPanelController implements Initializable {
         configurarTablaPistas();
         configurarTablaDeportes();
         configurarTablaReservas();
+        configurarTablaUsuarios();
 
         cargarDeportesEnCombo();
         cargarPistas();
         cargarDeportes();
         cargarReservas();
+        cargarUsuarios();
     }
-
-    // ══ PISTAS ════════════════════════════════════════════════════════════════
 
     private void configurarTablaPistas() {
         colPistaNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
@@ -100,7 +115,6 @@ public class AdminPanelController implements Initializable {
     private void cargarPistas() {
         pistasTable.setItems(FXCollections.observableArrayList(pistaService.getAllIncludingDesactivadas()));
 
-        // Doble clic en una fila carga la pista en el formulario para editarla
         pistasTable.setOnMouseClicked(evento -> {
             if (evento.getClickCount() == 2) {
                 Pista sel = pistasTable.getSelectionModel().getSelectedItem();
@@ -141,7 +155,6 @@ public class AdminPanelController implements Initializable {
 
         try {
             double precio = Double.parseDouble(pistaPrecioField.getText().replace(",", "."));
-
             Optional<Deporte> deporteOpt = deporteService.findByNombre(pistaDeporteCombo.getValue());
             if (deporteOpt.isEmpty()) {
                 mostrarErrorPista("Deporte no encontrado.");
@@ -171,10 +184,8 @@ public class AdminPanelController implements Initializable {
                 nueva.setEstado(estado);
                 pistaService.save(nueva);
             }
-
             limpiarFormPista();
             cargarPistas();
-
         } catch (NumberFormatException e) {
             mostrarErrorPista("El precio debe ser un número válido (ej: 15.00)");
         } catch (IllegalArgumentException e) {
@@ -219,18 +230,14 @@ public class AdminPanelController implements Initializable {
         pistaErrorLabel.setVisible(true);
     }
 
-    // ══ DEPORTES ══════════════════════════════════════════════════════════════
 
     private void configurarTablaDeportes() {
         colDeporteNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colDeporteDesc.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
-
-        // Esta columna necesita Callback porque consulta el service, no un getter del modelo
         colDeporteEstado.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Deporte, String>, ObservableValue<String>>() {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<Deporte, String> cellData) {
-                Deporte deporte = cellData.getValue();
-                int numPistas = pistaService.contarPorDeporte(deporte.getId());
+                int numPistas = pistaService.contarPorDeporte(cellData.getValue().getId());
                 return new SimpleStringProperty(numPistas + " pista(s)");
             }
         });
@@ -242,8 +249,7 @@ public class AdminPanelController implements Initializable {
 
     private void cargarDeportesEnCombo() {
         pistaDeporteCombo.getItems().clear();
-        List<Deporte> deportes = deporteService.getAll();
-        for (Deporte d : deportes) {
+        for (Deporte d : deporteService.getAll()) {
             pistaDeporteCombo.getItems().add(d.getNombre());
         }
     }
@@ -251,13 +257,11 @@ public class AdminPanelController implements Initializable {
     @FXML
     protected void onGuardarDeporte() {
         deporteErrorLabel.setVisible(false);
-
         if (deporteNombreField.getText().trim().isEmpty()) {
             deporteErrorLabel.setText("El nombre del deporte no puede estar vacío.");
             deporteErrorLabel.setVisible(true);
             return;
         }
-
         try {
             Deporte nuevo = new Deporte(
                     deporteNombreField.getText().trim(),
@@ -298,7 +302,6 @@ public class AdminPanelController implements Initializable {
         }
     }
 
-    // ══ RESERVAS ══════════════════════════════════════════════════════════════
 
     private void configurarTablaReservas() {
         colResUsuario.setCellValueFactory(new PropertyValueFactory<>("nombreUsuario"));
@@ -311,7 +314,45 @@ public class AdminPanelController implements Initializable {
     }
 
     private void cargarReservas() {
-        reservasTable.setItems(FXCollections.observableArrayList(reservaService.getAll()));
+        todasLasReservas = reservaService.getAll();
+
+        if (resFiltroEstado.getItems().isEmpty()) {
+            resFiltroEstado.getItems().addAll("Todos", "CONFIRMADA", "CANCELADA");
+            resFiltroEstado.setValue("Todos");
+            resSearchField.textProperty().addListener((obs, old, n) -> aplicarFiltrosReservas());
+            resFiltroEstado.valueProperty().addListener((obs, old, n) -> aplicarFiltrosReservas());
+            resFiltroFecha.valueProperty().addListener((obs, old, n) -> aplicarFiltrosReservas());
+        }
+
+        aplicarFiltrosReservas();
+    }
+
+    private void aplicarFiltrosReservas() {
+        String texto    = resSearchField.getText().toLowerCase().trim();
+        String estado   = resFiltroEstado.getValue();
+        LocalDate fecha = resFiltroFecha.getValue();
+
+        List<Reserva> filtradas = todasLasReservas.stream()
+                .filter(r -> {
+                    boolean coincideTexto  = texto.isEmpty()
+                            || r.getNombreUsuario().toLowerCase().contains(texto)
+                            || r.getNombrePista().toLowerCase().contains(texto)
+                            || r.getNombreDeporte().toLowerCase().contains(texto);
+                    boolean coincideEstado = estado == null || estado.equals("Todos")
+                            || r.getEstado().name().equals(estado);
+                    boolean coincideFecha  = fecha == null || r.getFecha().equals(fecha);
+                    return coincideTexto && coincideEstado && coincideFecha;
+                })
+                .collect(Collectors.toList());
+
+        reservasTable.setItems(FXCollections.observableArrayList(filtradas));
+    }
+
+    @FXML
+    protected void onLimpiarFiltrosReservas() {
+        resSearchField.clear();
+        resFiltroEstado.setValue("Todos");
+        resFiltroFecha.setValue(null);
     }
 
     @FXML
@@ -334,7 +375,60 @@ public class AdminPanelController implements Initializable {
         }
     }
 
-    // ══ Navegación ════════════════════════════════════════════════════════════
+
+    private void configurarTablaUsuarios() {
+        colUsuNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
+        colUsuEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colUsuRol.setCellValueFactory(new PropertyValueFactory<>("rol"));
+    }
+
+    private void cargarUsuarios() {
+        todosLosUsuarios = usuarioService.getAll();
+
+        if (usuSearchField != null) {
+            usuSearchField.textProperty().addListener((obs, old, n) -> aplicarFiltroUsuarios());
+        }
+
+        aplicarFiltroUsuarios();
+    }
+
+    private void aplicarFiltroUsuarios() {
+        String texto = usuSearchField.getText().toLowerCase().trim();
+
+        List<Usuario> filtrados = todosLosUsuarios.stream()
+                .filter(u -> texto.isEmpty()
+                        || u.getNombre().toLowerCase().contains(texto)
+                        || u.getEmail().toLowerCase().contains(texto))
+                .collect(Collectors.toList());
+
+        usuariosTable.setItems(FXCollections.observableArrayList(filtrados));
+    }
+
+    @FXML
+    protected void onLimpiarFiltroUsuarios() {
+        usuSearchField.clear();
+    }
+
+    @FXML
+    protected void onEliminarUsuario() {
+        Usuario sel = usuariosTable.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            new Alert(Alert.AlertType.WARNING, "Selecciona un usuario primero.", ButtonType.OK).showAndWait();
+            return;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "¿Eliminar al usuario '" + sel.getNombre() + "'? Se eliminarán también sus reservas.",
+                ButtonType.YES, ButtonType.NO);
+        confirm.setHeaderText(null);
+
+        Optional<ButtonType> resultado = confirm.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
+            usuarioService.delete(sel.getId());
+            cargarUsuarios();
+            cargarReservas();
+        }
+    }
+
     @FXML
     protected void onVolver() {
         NavigationUtil.navigateTo("homepage.fxml", pistasTable);
