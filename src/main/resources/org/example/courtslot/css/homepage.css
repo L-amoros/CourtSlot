@@ -645,3 +645,91 @@
     -fx-background-color: rgba(34,197,94,0.15);
     -fx-text-fill: white;
 }
+.date-picker .text-field {
+    -fx-background-color: #1e293b;
+    -fx-text-fill: #f1f5f9;
+    -fx-border-color: #475569;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: #334155;
+    -fx-border-color: #475569;
+}
+
+.date-picker .arrow-button .arrow {
+    -fx-background-color: #f1f5f9;
+}
+
+.date-picker-popup {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #475569;
+}
+
+.date-picker-popup .month-year-pane {
+    -fx-background-color: #0f172a;
+}
+
+.date-picker-popup .spinner .button .left-arrow,
+.date-picker-popup .spinner .button .right-arrow {
+    -fx-background-color: #f1f5f9;
+}
+
+.date-picker-popup .spinner Label {
+    -fx-text-fill: #f1f5f9;
+}
+
+.date-picker-popup .day-name-cell {
+    -fx-text-fill: #94a3b8;
+}
+
+.date-picker-popup .day-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f1f5f9;
+}
+
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: #334155;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.date-picker-popup .selected {
+    -fx-background-color: #22c55e;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+}
+
+.date-picker-popup .today {
+    -fx-border-color: #22c55e;
+    -fx-border-radius: 4;
+}
+
+.date-picker-popup .day-cell:disabled {
+    -fx-text-fill: #475569;
+}
+.date-picker-popup .calendar-grid {
+    -fx-background-color: #1e293b;
+}
+
+.date-picker-popup .date-picker-popup-border {
+    -fx-background-color: #1e293b;
+}
+
+/* Los números de semana (9, 10, 11...) de la izquierda */
+.date-picker-popup .week-number-cell {
+    -fx-text-fill: #64748b;
+    -fx-background-color: #1e293b;
+}
+
+/* Fondo de las celdas de día pasado/otro mes */
+.date-picker-popup .day-cell.other-month {
+    -fx-text-fill: #475569;
+    -fx-background-color: #1e293b;
+}
+
+/* El fondo blanco que queda detrás del grid */
+.date-picker-popup > * {
+    -fx-background-color: #1e293b;
+}

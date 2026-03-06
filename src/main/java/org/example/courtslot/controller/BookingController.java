@@ -25,11 +25,11 @@ import java.util.ResourceBundle;
 
 public class BookingController implements Initializable {
 
-    @FXML private Label  fechaLabel;
-    @FXML private Button btnAnterior;
-    @FXML private Button btnSiguiente;
-    @FXML private VBox   pistasContainer;
-    @FXML private Label  tituloLabel;
+    @FXML private Button     btnAnterior;
+    @FXML private Button     btnSiguiente;
+    @FXML private VBox       pistasContainer;
+    @FXML private Label      tituloLabel;
+    @FXML private DatePicker datePicker;
 
     private Deporte   deporteSeleccionado;
     private LocalDate fechaActual = LocalDate.now();
@@ -47,6 +47,16 @@ public class BookingController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         actualizarFechaLabel();
+        datePicker.setValue(fechaActual);
+        datePicker.valueProperty().addListener((obs, old, nueva) -> {
+            if (nueva != null && !nueva.isBefore(LocalDate.now())) {
+                fechaActual = nueva;
+                actualizarFechaLabel();
+                if (deporteSeleccionado != null) cargarPistas();
+            } else {
+                datePicker.setValue(fechaActual);
+            }
+        });
     }
 
     // Recibe el deporte desde HomepageController y carga la pantalla
@@ -79,10 +89,8 @@ public class BookingController implements Initializable {
 
     private VBox crearFilaPista(Pista pista) {
 
-        // Etiqueta con el nombre de la pista
         Label lblNombre = new Label(pista.getNombre());
 
-        // Etiqueta con descripción o precio si no hay descripción
         String textoDesc;
         if (pista.getDescripcion() != null && !pista.getDescripcion().isBlank()) {
             textoDesc = pista.getDescripcion();
@@ -93,27 +101,22 @@ public class BookingController implements Initializable {
 
         VBox cabecera = new VBox(2, lblNombre, lblDesc);
 
-        // Fila de botones de hora
         HBox filaSlots = new HBox(6);
         filaSlots.setAlignment(Pos.CENTER_LEFT);
 
-        // Reservas que ya ocupan slots en esta pista y fecha
         List<Reserva> reservasOcupadas = reservaService.getSlotsBloqueados(pista.getId(), fechaActual);
 
-        // ID del usuario logueado para saber si una reserva es suya
         Long idUsuarioActual = null;
         if (SessionManager.getInstance().estaLogueado()) {
             idUsuarioActual = SessionManager.getInstance().getUsuarioActual().getId();
         }
 
-        // Crear un botón por cada hora entre apertura y cierre
         LocalTime hora = HORA_APERTURA;
         while (hora.isBefore(HORA_CIERRE)) {
 
             LocalTime slotInicio = hora;
             LocalTime slotFin    = hora.plusHours(1);
 
-            // Buscar si este slot está ocupado por alguna reserva
             Reserva reservaEnEsteSlot = null;
             for (Reserva r : reservasOcupadas) {
                 if (r.getHoraInicio().isBefore(slotFin) && r.getHoraFin().isAfter(slotInicio)) {
@@ -141,20 +144,17 @@ public class BookingController implements Initializable {
         btn.setPrefHeight(50);
 
         if (reservaEnEsteSlot == null) {
-            // Slot libre — se puede reservar
             btn.setText(slotInicio.toString());
             btn.setStyle("-fx-background-color: #22c55e; -fx-text-fill: white;");
             btn.setOnAction(e -> onClickSlotLibre(pista, slotInicio, slotFin, btn));
 
         } else if (idUsuarioActual != null && reservaEnEsteSlot.getUsuario().getId().equals(idUsuarioActual)) {
-            // Slot con mi propia reserva — se puede cancelar
             btn.setText("Mi reserva\n" + slotInicio);
             btn.setStyle("-fx-background-color: #f59e0b; -fx-text-fill: white;");
             Reserva reservaACancelar = reservaEnEsteSlot;
             btn.setOnAction(e -> onClickMiReserva(reservaACancelar, btn, slotInicio, slotFin, pista));
 
         } else {
-            // Slot ocupado por otro usuario — no se puede hacer nada
             btn.setText("Ocupado\n" + slotInicio);
             btn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;");
             btn.setDisable(true);
@@ -186,7 +186,6 @@ public class BookingController implements Initializable {
                 Usuario usuario = SessionManager.getInstance().getUsuarioActual();
                 reservaService.crear(usuario, pista, fechaActual, inicio, fin);
 
-                // Marcar el botón como ocupado visualmente
                 btnPulsado.setText("Ocupado\n" + inicio);
                 btnPulsado.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;");
                 btnPulsado.setDisable(true);
@@ -218,7 +217,6 @@ public class BookingController implements Initializable {
         if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
             reservaService.cancelar(reserva.getId());
 
-            // Volver a mostrar el botón como libre
             btn.setText(slotInicio.toString());
             btn.setStyle("-fx-background-color: #22c55e; -fx-text-fill: white;");
             btn.setDisable(false);
@@ -248,8 +246,8 @@ public class BookingController implements Initializable {
     }
 
     private void actualizarFechaLabel() {
-        fechaLabel.setText(fechaActual.format(FMT_FECHA));
         btnAnterior.setDisable(fechaActual.equals(LocalDate.now()));
+        if (datePicker != null) datePicker.setValue(fechaActual);
     }
 
     @FXML

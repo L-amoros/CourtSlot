@@ -31,9 +31,7 @@
                             text="‹"
                             onAction="#onDiaAnterior"
                             mnemonicParsing="false" />
-                    <Label fx:id="fechaLabel"
-                           styleClass="fecha-label"
-                           text="hoy" />
+                    <DatePicker fx:id="datePicker" showWeekNumbers="false" />
                     <Button fx:id="btnSiguiente"
                             styleClass="nav-btn"
                             text="›"
