@@ -66,7 +66,6 @@ public class BookingController implements Initializable {
         cargarPistas();
     }
 
-    // ── Rellena el contenedor con una fila por cada pista ────────────────────
 
     private void cargarPistas() {
         pistasContainer.getChildren().clear();
@@ -84,8 +83,6 @@ public class BookingController implements Initializable {
             pistasContainer.getChildren().add(filaPista);
         }
     }
-
-    // ── Crea la fila visual de una pista: nombre + botones de hora ───────────
 
     private VBox crearFilaPista(Pista pista) {
 
@@ -135,7 +132,6 @@ public class BookingController implements Initializable {
         return fila;
     }
 
-    // ── Crea un botón de slot según su estado: libre, mío u ocupado ──────────
 
     private Button crearBotonSlot(Pista pista, LocalTime slotInicio, LocalTime slotFin,
                                   Reserva reservaEnEsteSlot, Long idUsuarioActual) {
@@ -163,7 +159,6 @@ public class BookingController implements Initializable {
         return btn;
     }
 
-    // ── Al pulsar un slot libre: confirmar y crear la reserva ────────────────
 
     private void onClickSlotLibre(Pista pista, LocalTime inicio, LocalTime fin, Button btnPulsado) {
         if (!SessionManager.getInstance().estaLogueado()) {
@@ -201,7 +196,6 @@ public class BookingController implements Initializable {
         }
     }
 
-    // ── Al pulsar mi reserva (naranja): confirmar cancelación ────────────────
 
     private void onClickMiReserva(Reserva reserva, Button btn,
                                   LocalTime slotInicio, LocalTime slotFin, Pista pista) {
@@ -226,7 +220,6 @@ public class BookingController implements Initializable {
         }
     }
 
-    // ── Navegación por fechas ─────────────────────────────────────────────────
 
     @FXML
     protected void onDiaAnterior() {

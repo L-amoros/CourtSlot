@@ -20,12 +20,8 @@ public class Usuario {
     @Column(nullable = false, length = 10)
     private Rol rol;
 
-    // ─── Constructores ────────────────────────────────────────────────────────
-
-    // Constructor vacío — obligatorio para Hibernate
     public Usuario() {}
 
-    // Constructor de uso en el código
     public Usuario(String nombre, String email, String password, Rol rol) {
         this.nombre   = nombre;
         this.email    = email;
@@ -33,7 +29,6 @@ public class Usuario {
         this.rol      = rol;
     }
 
-    // ─── Getters / Setters ────────────────────────────────────────────────────
 
     public Long getId()                 { return id; }
     public void setId(Long id)          { this.id = id; }
@@ -50,7 +45,6 @@ public class Usuario {
     public Rol getRol()                 { return rol; }
     public void setRol(Rol r)           { this.rol = r; }
 
-    // Método de ayuda para comprobar si es admin
     public boolean isAdmin()            { return Rol.ADMIN.equals(this.rol); }
 
     @Override

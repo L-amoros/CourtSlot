@@ -52,7 +52,6 @@ public class AdminPanelController implements Initializable {
     @FXML private TextField deporteDescField;
     @FXML private Button    deporteSaveBtn;
     @FXML private Label     deporteErrorLabel;
-
     @FXML private TableView<Reserva>          reservasTable;
     @FXML private TableColumn<Reserva,String> colResUsuario;
     @FXML private TableColumn<Reserva,String> colResPista;
@@ -65,25 +64,34 @@ public class AdminPanelController implements Initializable {
     @FXML private TextField        resSearchField;
     @FXML private ComboBox<String> resFiltroEstado;
     @FXML private DatePicker       resFiltroFecha;
+    @FXML private Button btnResPaginaAnterior;
+    @FXML private Button btnResPaginaSiguiente;
+    @FXML private Label  resLabelPagina;
 
     private List<Reserva> todasLasReservas;
-
-    @FXML private TableView<Usuario>           usuariosTable;
-    @FXML private TableColumn<Usuario,String>  colUsuNombre;
-    @FXML private TableColumn<Usuario,String>  colUsuEmail;
-    @FXML private TableColumn<Usuario,String>  colUsuRol;
+    private List<Reserva> reservasFiltradas = List.of();
+    private int resPaginaActual = 0;
+    @FXML private TableView<Usuario>          usuariosTable;
+    @FXML private TableColumn<Usuario,String> colUsuNombre;
+    @FXML private TableColumn<Usuario,String> colUsuEmail;
+    @FXML private TableColumn<Usuario,String> colUsuRol;
 
     @FXML private TextField usuSearchField;
+    @FXML private Button btnUsuPaginaAnterior;
+    @FXML private Button btnUsuPaginaSiguiente;
+    @FXML private Label  usuLabelPagina;
 
     private List<Usuario> todosLosUsuarios;
+    private List<Usuario> usuariosFiltrados = List.of();
+    private int usuPaginaActual = 0;
+    private static final int FILAS_POR_PAGINA = 10;
 
-    private final PistaService    pistaService    = new PistaService();
-    private final DeporteService  deporteService  = new DeporteService();
-    private final ReservaService  reservaService  = new ReservaService();
-    private final UsuarioService  usuarioService  = new UsuarioService();
+    private final PistaService   pistaService   = new PistaService();
+    private final DeporteService deporteService = new DeporteService();
+    private final ReservaService reservaService = new ReservaService();
+    private final UsuarioService usuarioService = new UsuarioService();
 
     private Pista pistaEditando = null;
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         pistaErrorLabel.setVisible(false);
@@ -263,16 +271,12 @@ public class AdminPanelController implements Initializable {
             return;
         }
         try {
-            Deporte nuevo = new Deporte(
+            deporteService.save(new Deporte(
                     deporteNombreField.getText().trim(),
-                    deporteDescField.getText().trim(),
-                    null
-            );
-            deporteService.save(nuevo);
-            deporteNombreField.clear();
-            deporteDescField.clear();
-            cargarDeportes();
-            cargarDeportesEnCombo();
+                    deporteDescField.getText().trim(), null));
+                    deporteNombreField.clear();
+                    deporteDescField.clear();
+            cargarDeportes(); cargarDeportesEnCombo();
         } catch (IllegalArgumentException e) {
             deporteErrorLabel.setText(e.getMessage());
             deporteErrorLabel.setVisible(true);
@@ -319,11 +323,12 @@ public class AdminPanelController implements Initializable {
         if (resFiltroEstado.getItems().isEmpty()) {
             resFiltroEstado.getItems().addAll("Todos", "CONFIRMADA", "CANCELADA");
             resFiltroEstado.setValue("Todos");
-            resSearchField.textProperty().addListener((obs, old, n) -> aplicarFiltrosReservas());
-            resFiltroEstado.valueProperty().addListener((obs, old, n) -> aplicarFiltrosReservas());
-            resFiltroFecha.valueProperty().addListener((obs, old, n) -> aplicarFiltrosReservas());
+            resSearchField.textProperty().addListener((obs, old, n) -> { resPaginaActual = 0; aplicarFiltrosReservas(); });
+            resFiltroEstado.valueProperty().addListener((obs, old, n) -> { resPaginaActual = 0; aplicarFiltrosReservas(); });
+            resFiltroFecha.valueProperty().addListener((obs, old, n)  -> { resPaginaActual = 0; aplicarFiltrosReservas(); });
         }
 
+        resPaginaActual = 0;
         aplicarFiltrosReservas();
     }
 
@@ -332,7 +337,7 @@ public class AdminPanelController implements Initializable {
         String estado   = resFiltroEstado.getValue();
         LocalDate fecha = resFiltroFecha.getValue();
 
-        List<Reserva> filtradas = todasLasReservas.stream()
+        reservasFiltradas = todasLasReservas.stream()
                 .filter(r -> {
                     boolean coincideTexto  = texto.isEmpty()
                             || r.getNombreUsuario().toLowerCase().contains(texto)
@@ -345,7 +350,28 @@ public class AdminPanelController implements Initializable {
                 })
                 .collect(Collectors.toList());
 
-        reservasTable.setItems(FXCollections.observableArrayList(filtradas));
+        mostrarPaginaReservas();
+    }
+
+    private void mostrarPaginaReservas() {
+        int desde = resPaginaActual * FILAS_POR_PAGINA;
+        int hasta = Math.min(desde + FILAS_POR_PAGINA, reservasFiltradas.size());
+        reservasTable.setItems(FXCollections.observableArrayList(
+                reservasFiltradas.isEmpty() ? List.of() : reservasFiltradas.subList(desde, hasta)
+        ));
+        int totalPaginas = (int) Math.ceil((double) reservasFiltradas.size() / FILAS_POR_PAGINA);
+        resLabelPagina.setText((resPaginaActual + 1) + " / " + Math.max(1, totalPaginas));
+        btnResPaginaAnterior.setDisable(resPaginaActual == 0);
+        btnResPaginaSiguiente.setDisable(resPaginaActual >= totalPaginas - 1);
+    }
+
+    @FXML protected void onResPaginaAnterior() {
+        if (resPaginaActual > 0) { resPaginaActual--; mostrarPaginaReservas(); }
+    }
+
+    @FXML protected void onResPaginaSiguiente() {
+        int totalPaginas = (int) Math.ceil((double) reservasFiltradas.size() / FILAS_POR_PAGINA);
+        if (resPaginaActual < totalPaginas - 1) { resPaginaActual++; mostrarPaginaReservas(); }
     }
 
     @FXML
@@ -386,22 +412,44 @@ public class AdminPanelController implements Initializable {
         todosLosUsuarios = usuarioService.getAll();
 
         if (usuSearchField != null) {
-            usuSearchField.textProperty().addListener((obs, old, n) -> aplicarFiltroUsuarios());
+            usuSearchField.textProperty().addListener((obs, old, n) -> { usuPaginaActual = 0; aplicarFiltroUsuarios(); });
         }
 
+        usuPaginaActual = 0;
         aplicarFiltroUsuarios();
     }
 
     private void aplicarFiltroUsuarios() {
         String texto = usuSearchField.getText().toLowerCase().trim();
 
-        List<Usuario> filtrados = todosLosUsuarios.stream()
+        usuariosFiltrados = todosLosUsuarios.stream()
                 .filter(u -> texto.isEmpty()
                         || u.getNombre().toLowerCase().contains(texto)
                         || u.getEmail().toLowerCase().contains(texto))
                 .collect(Collectors.toList());
 
-        usuariosTable.setItems(FXCollections.observableArrayList(filtrados));
+        mostrarPaginaUsuarios();
+    }
+
+    private void mostrarPaginaUsuarios() {
+        int desde = usuPaginaActual * FILAS_POR_PAGINA;
+        int hasta = Math.min(desde + FILAS_POR_PAGINA, usuariosFiltrados.size());
+        usuariosTable.setItems(FXCollections.observableArrayList(
+                usuariosFiltrados.isEmpty() ? List.of() : usuariosFiltrados.subList(desde, hasta)
+        ));
+        int totalPaginas = (int) Math.ceil((double) usuariosFiltrados.size() / FILAS_POR_PAGINA);
+        usuLabelPagina.setText((usuPaginaActual + 1) + " / " + Math.max(1, totalPaginas));
+        btnUsuPaginaAnterior.setDisable(usuPaginaActual == 0);
+        btnUsuPaginaSiguiente.setDisable(usuPaginaActual >= totalPaginas - 1);
+    }
+
+    @FXML protected void onUsuPaginaAnterior() {
+        if (usuPaginaActual > 0) { usuPaginaActual--; mostrarPaginaUsuarios(); }
+    }
+
+    @FXML protected void onUsuPaginaSiguiente() {
+        int totalPaginas = (int) Math.ceil((double) usuariosFiltrados.size() / FILAS_POR_PAGINA);
+        if (usuPaginaActual < totalPaginas - 1) { usuPaginaActual++; mostrarPaginaUsuarios(); }
     }
 
     @FXML
@@ -420,7 +468,6 @@ public class AdminPanelController implements Initializable {
                 "¿Eliminar al usuario '" + sel.getNombre() + "'? Se eliminarán también sus reservas.",
                 ButtonType.YES, ButtonType.NO);
         confirm.setHeaderText(null);
-
         Optional<ButtonType> resultado = confirm.showAndWait();
         if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
             usuarioService.delete(sel.getId());

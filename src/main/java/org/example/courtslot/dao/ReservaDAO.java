@@ -94,7 +94,6 @@ public class ReservaDAO {
         }
     }
 
-    // Devuelve las reservas activas (no canceladas) de una fecha concreta
     public List<Reserva> findByFecha(LocalDate fecha) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery(

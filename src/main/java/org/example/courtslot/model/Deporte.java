@@ -18,7 +18,7 @@ public class Deporte {
     private String descripcion;
 
     @Column(length = 255)
-    private String icono; // nombre del fichero de imagen, ej: "tenis.png"
+    private String icono;
 
     @OneToMany(mappedBy = "deporte", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Pista> pistas;

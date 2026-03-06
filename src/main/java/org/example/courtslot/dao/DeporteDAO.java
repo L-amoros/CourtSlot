@@ -63,7 +63,6 @@ public class DeporteDAO {
         }
     }
 
-    // Busca un deporte por su nombre exacto
     public Optional<Deporte> findByNombre(String nombre) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery(

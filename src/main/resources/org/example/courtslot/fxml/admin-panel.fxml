@@ -140,6 +140,11 @@
                         </columns>
                         <placeholder><Label text="No hay reservas." styleClass="subtext" /></placeholder>
                     </TableView>
+                    <HBox spacing="10" alignment="CENTER">
+                        <Button fx:id="btnResPaginaAnterior" text="◀" onAction="#onResPaginaAnterior" mnemonicParsing="false" />
+                        <Label fx:id="resLabelPagina" text="1 / 1" />
+                        <Button fx:id="btnResPaginaSiguiente" text="▶" onAction="#onResPaginaSiguiente" mnemonicParsing="false" />
+                    </HBox>
                     <Button text="🚫 Cancelar Reserva Seleccionada" styleClass="btn-danger"
                             onAction="#onCancelarReserva" prefHeight="40" mnemonicParsing="false" />
                 </VBox>
@@ -165,6 +170,11 @@
                         </columns>
                         <placeholder><Label text="No hay usuarios." styleClass="subtext" /></placeholder>
                     </TableView>
+                    <HBox spacing="10" alignment="CENTER">
+                        <Button fx:id="btnUsuPaginaAnterior" text="◀" onAction="#onUsuPaginaAnterior" mnemonicParsing="false" />
+                        <Label fx:id="usuLabelPagina" text="1 / 1" />
+                        <Button fx:id="btnUsuPaginaSiguiente" text="▶" onAction="#onUsuPaginaSiguiente" mnemonicParsing="false" />
+                    </HBox>
 
                     <Button text="🗑️ Eliminar Usuario Seleccionado" styleClass="btn-danger"
                             onAction="#onEliminarUsuario" prefHeight="40" mnemonicParsing="false" />

@@ -68,7 +68,6 @@ public class PistaDAO {
         }
     }
 
-    // Devuelve solo las pistas activas de un deporte concreto
     public List<Pista> getByDeporte(Long deporteId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery(
@@ -81,7 +80,6 @@ public class PistaDAO {
         }
     }
 
-    // Devuelve el número de pistas (incluyendo desactivadas) que tiene un deporte
     public int contarPorDeporte(Long deporteId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Long count = session.createQuery(

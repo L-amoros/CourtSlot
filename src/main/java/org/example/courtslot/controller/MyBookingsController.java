@@ -23,6 +23,7 @@ public class MyBookingsController implements Initializable {
 
     @FXML private Label userNameLabel;
     @FXML private Label emptyLabel;
+
     @FXML private TableView<Reserva>          reservasTable;
     @FXML private TableColumn<Reserva,String> colPista;
     @FXML private TableColumn<Reserva,String> colDeporte;
@@ -30,15 +31,23 @@ public class MyBookingsController implements Initializable {
     @FXML private TableColumn<Reserva,String> colHora;
     @FXML private TableColumn<Reserva,String> colPrecio;
     @FXML private TableColumn<Reserva,String> colEstado;
+
     @FXML private TextField        searchField;
     @FXML private ComboBox<String> filtroEstado;
     @FXML private DatePicker       filtroFecha;
+
+    @FXML private Button btnPaginaAnterior;
+    @FXML private Button btnPaginaSiguiente;
+    @FXML private Label  labelPagina;
 
     private final ReservaService reservaService = new ReservaService();
     private static final DateTimeFormatter FMT_FECHA =
             DateTimeFormatter.ofPattern("d MMM yyyy", new Locale("es", "ES"));
 
     private List<Reserva> todasLasReservas;
+    private List<Reserva> reservasFiltradas = List.of();
+    private int paginaActual = 0;
+    private static final int FILAS_POR_PAGINA = 10;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -60,30 +69,28 @@ public class MyBookingsController implements Initializable {
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estadoTexto"));
     }
 
-
     private void configurarFiltros() {
         filtroEstado.getItems().addAll("Todos", "CONFIRMADA", "CANCELADA");
         filtroEstado.setValue("Todos");
 
-        // Cualquier cambio en los 3 filtros llama a aplicarFiltros()
-        searchField.textProperty().addListener((obs, old, nuevo) -> aplicarFiltros());
-        filtroEstado.valueProperty().addListener((obs, old, nuevo) -> aplicarFiltros());
-        filtroFecha.valueProperty().addListener((obs, old, nuevo) -> aplicarFiltros());
+        searchField.textProperty().addListener((obs, old, nuevo) -> { paginaActual = 0; aplicarFiltros(); });
+        filtroEstado.valueProperty().addListener((obs, old, nuevo) -> { paginaActual = 0; aplicarFiltros(); });
+        filtroFecha.valueProperty().addListener((obs, old, nuevo)  -> { paginaActual = 0; aplicarFiltros(); });
     }
-
 
     private void cargarReservas() {
         Long usuarioId = SessionManager.getInstance().getUsuarioActual().getId();
         todasLasReservas = reservaService.getMisReservas(usuarioId);
+        paginaActual = 0;
         aplicarFiltros();
     }
 
     private void aplicarFiltros() {
-        String texto      = searchField.getText().toLowerCase().trim();
-        String estado     = filtroEstado.getValue();
-        LocalDate fecha   = filtroFecha.getValue();
+        String texto    = searchField.getText().toLowerCase().trim();
+        String estado   = filtroEstado.getValue();
+        LocalDate fecha = filtroFecha.getValue();
 
-        List<Reserva> filtradas = todasLasReservas.stream()
+        reservasFiltradas = todasLasReservas.stream()
                 .filter(r -> {
                     boolean coincideTexto =
                             texto.isEmpty()
@@ -100,16 +107,43 @@ public class MyBookingsController implements Initializable {
                 })
                 .collect(Collectors.toList());
 
-        if (filtradas.isEmpty()) {
+        mostrarPagina();
+    }
+    private void mostrarPagina() {
+        if (reservasFiltradas.isEmpty()) {
             emptyLabel.setVisible(true);
             reservasTable.setVisible(false);
-        } else {
-            emptyLabel.setVisible(false);
-            reservasTable.setVisible(true);
-            reservasTable.setItems(FXCollections.observableArrayList(filtradas));
+            labelPagina.setText("0 / 0");
+            btnPaginaAnterior.setDisable(true);
+            btnPaginaSiguiente.setDisable(true);
+            return;
         }
+
+        emptyLabel.setVisible(false);
+        reservasTable.setVisible(true);
+
+        int desde = paginaActual * FILAS_POR_PAGINA;
+        int hasta = Math.min(desde + FILAS_POR_PAGINA, reservasFiltradas.size());
+        reservasTable.setItems(FXCollections.observableArrayList(
+                reservasFiltradas.subList(desde, hasta)
+        ));
+
+        int totalPaginas = (int) Math.ceil((double) reservasFiltradas.size() / FILAS_POR_PAGINA);
+        labelPagina.setText((paginaActual + 1) + " / " + totalPaginas);
+        btnPaginaAnterior.setDisable(paginaActual == 0);
+        btnPaginaSiguiente.setDisable(paginaActual >= totalPaginas - 1);
     }
 
+    @FXML
+    protected void onPaginaAnterior() {
+        if (paginaActual > 0) { paginaActual--; mostrarPagina(); }
+    }
+
+    @FXML
+    protected void onPaginaSiguiente() {
+        int totalPaginas = (int) Math.ceil((double) reservasFiltradas.size() / FILAS_POR_PAGINA);
+        if (paginaActual < totalPaginas - 1) { paginaActual++; mostrarPagina(); }
+    }
 
     @FXML
     protected void onLimpiarFiltros() {

@@ -57,7 +57,6 @@ public class HomepageController implements Initializable {
         cargarDeportes(null);
     }
 
-    // ── Rellena las cards de deporte ──────────────────────────────────────────
 
     private void cargarDeportes(String filtroNombre) {
         cardsContainer.getChildren().clear();
@@ -80,7 +79,6 @@ public class HomepageController implements Initializable {
         }
     }
 
-    // ── Construye la card visual de un deporte ────────────────────────────────
 
     private VBox crearCardDeporte(Deporte deporte) {
         VBox card = new VBox();
@@ -89,14 +87,12 @@ public class HomepageController implements Initializable {
         card.setMaxWidth(230);
         card.setMinWidth(200);
 
-        // Imagen del deporte
         ImageView imagen = new ImageView();
         imagen.setFitWidth(230);
         imagen.setFitHeight(160);
         imagen.setPreserveRatio(false);
         cargarImagenDeporte(imagen, deporte);
 
-        // Cuerpo de la card
         VBox cuerpo = new VBox(6);
         cuerpo.getStyleClass().add("card-body");
 
@@ -111,7 +107,7 @@ public class HomepageController implements Initializable {
             cuerpo.getChildren().add(lblDesc);
         }
 
-        // Precio mínimo (lo calcula el service)
+        // Precio mínimo (lo calculamos el service)
         Pista pistaMasBarata = pistaService.getPistaMasBarata(deporte.getId());
         if (pistaMasBarata != null) {
             Label lblPrecio = new Label(String.format("%.2f €/h", pistaMasBarata.getPrecioPorHora()));
@@ -119,7 +115,6 @@ public class HomepageController implements Initializable {
             cuerpo.getChildren().add(lblPrecio);
         }
 
-        // Botón reservar
         Button btnReservar = new Button("Reservar");
         btnReservar.getStyleClass().add("btn-reservar");
         btnReservar.setMaxWidth(Double.MAX_VALUE);
@@ -142,7 +137,6 @@ public class HomepageController implements Initializable {
             }
         }
         // Si no hay icono, construimos el nombre del fichero a partir del nombre del deporte
-        // Ejemplo: "Fútbol Sala" → "futbol-sala.png"
         String nombreFichero = deporte.getNombre().toLowerCase()
                 .replace(" ", "-")
                 .replace("á", "a").replace("é", "e").replace("í", "i")
@@ -154,7 +148,6 @@ public class HomepageController implements Initializable {
         }
     }
 
-    // ── Al pulsar "Reservar" en una card ──────────────────────────────────────
 
     private void onClickReservar(Deporte deporte) {
         if (!SessionManager.getInstance().estaLogueado()) {
@@ -172,21 +165,18 @@ public class HomepageController implements Initializable {
             return;
         }
 
-        // Navegar a la pantalla de reserva y pasarle el deporte seleccionado
         BookingController ctrl = NavigationUtil.navigateToAndGetController("booking.fxml", cardsContainer);
         if (ctrl != null) {
             ctrl.setDeporte(deporte);
         }
     }
 
-    // ── Buscador ──────────────────────────────────────────────────────────────
 
     @FXML
     protected void onBuscar() {
         cargarDeportes(searchField.getText().trim());
     }
 
-    // ── Estadísticas admin ────────────────────────────────────────────────────
 
     private void cargarEstadisticasAdmin() {
         List<Pista> todasPistas = pistaService.getAll();
@@ -203,7 +193,6 @@ public class HomepageController implements Initializable {
         statHorarioNum.setText(reservaService.getFranjaHorariaMasReservada());
     }
 
-    // ── Navegación ────────────────────────────────────────────────────────────
 
     @FXML
     protected void onMisReservas() {

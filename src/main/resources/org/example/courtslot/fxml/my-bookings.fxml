@@ -83,6 +83,11 @@
                     <Label text="No hay reservas que mostrar." styleClass="subtext" />
                 </placeholder>
             </TableView>
+            <HBox spacing="10" alignment="CENTER">
+                <Button fx:id="btnPaginaAnterior" text="◀" onAction="#onPaginaAnterior" mnemonicParsing="false" />
+                <Label fx:id="labelPagina" text="1 / 1" />
+                <Button fx:id="btnPaginaSiguiente" text="▶" onAction="#onPaginaSiguiente" mnemonicParsing="false" />
+            </HBox>
 
         </VBox>
     </center>

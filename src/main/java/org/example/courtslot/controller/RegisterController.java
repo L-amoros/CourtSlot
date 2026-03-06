@@ -25,7 +25,6 @@ public class RegisterController {
     protected void onRegistrar() {
         errorLabel.setVisible(false);
 
-        // Validación manual de campos vacíos
         if (nombreField.getText().trim().isEmpty() ||
                 emailField.getText().trim().isEmpty() ||
                 passwordField.getText().isEmpty() ||

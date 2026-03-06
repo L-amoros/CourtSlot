@@ -6,12 +6,9 @@ import java.util.List;
 @Entity
 @Table(name = "pistas")
 public class Pista {
-
-    // ── Enum de estado ────────────────────────────────────────────────────────
     public enum Estado {
         ACTIVA, MANTENIMIENTO, DESACTIVADA
     }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,7 +25,6 @@ public class Pista {
     @Column(length = 255)
     private String imagenUrl;
 
-    // Reemplaza el Boolean activa por el enum Estado
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Estado estado = Estado.ACTIVA;
@@ -40,7 +36,6 @@ public class Pista {
     @OneToMany(mappedBy = "pista", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Reserva> reservas;
 
-    // ── Constructores ─────────────────────────────────────────────────────────
     public Pista() {}
 
     public Pista(String nombre, String descripcion, Double precioPorHora,
@@ -53,7 +48,6 @@ public class Pista {
         this.estado        = Estado.ACTIVA;
     }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────────
     public Long getId()                             { return id; }
     public void setId(Long id)                      { this.id = id; }
     public String getNombre()                       { return nombre; }
@@ -86,7 +80,6 @@ public class Pista {
         return "❌ Desactivada";
     }
 
-    // Compatibilidad con código que usaba getActiva()
     public Boolean getActiva() { return estado == Estado.ACTIVA; }
     public void setActiva(Boolean ACTIVA) {
         this.estado = ACTIVA ? Estado.ACTIVA : Estado.DESACTIVADA;
