@@ -11,17 +11,18 @@ import org.example.courtslot.util.NavigationUtil;
 import org.example.courtslot.util.SessionManager;
 
 import java.net.URL;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class MyBookingsController implements Initializable {
 
     @FXML private Label userNameLabel;
     @FXML private Label emptyLabel;
-
     @FXML private TableView<Reserva>          reservasTable;
     @FXML private TableColumn<Reserva,String> colPista;
     @FXML private TableColumn<Reserva,String> colDeporte;
@@ -29,10 +30,15 @@ public class MyBookingsController implements Initializable {
     @FXML private TableColumn<Reserva,String> colHora;
     @FXML private TableColumn<Reserva,String> colPrecio;
     @FXML private TableColumn<Reserva,String> colEstado;
+    @FXML private TextField        searchField;
+    @FXML private ComboBox<String> filtroEstado;
+    @FXML private DatePicker       filtroFecha;
 
     private final ReservaService reservaService = new ReservaService();
     private static final DateTimeFormatter FMT_FECHA =
             DateTimeFormatter.ofPattern("d MMM yyyy", new Locale("es", "ES"));
+
+    private List<Reserva> todasLasReservas;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -41,10 +47,9 @@ public class MyBookingsController implements Initializable {
         }
 
         configurarTabla();
+        configurarFiltros();
         cargarReservas();
     }
-
-    // ── Configurar columnas ───────────────────────────────────────────────────
 
     private void configurarTabla() {
         colPista.setCellValueFactory(new PropertyValueFactory<>("nombrePista"));
@@ -55,23 +60,63 @@ public class MyBookingsController implements Initializable {
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estadoTexto"));
     }
 
-    // ── Cargar reservas del usuario logueado ──────────────────────────────────
+
+    private void configurarFiltros() {
+        filtroEstado.getItems().addAll("Todos", "CONFIRMADA", "CANCELADA");
+        filtroEstado.setValue("Todos");
+
+        // Cualquier cambio en los 3 filtros llama a aplicarFiltros()
+        searchField.textProperty().addListener((obs, old, nuevo) -> aplicarFiltros());
+        filtroEstado.valueProperty().addListener((obs, old, nuevo) -> aplicarFiltros());
+        filtroFecha.valueProperty().addListener((obs, old, nuevo) -> aplicarFiltros());
+    }
+
 
     private void cargarReservas() {
         Long usuarioId = SessionManager.getInstance().getUsuarioActual().getId();
-        List<Reserva> reservas = reservaService.getMisReservas(usuarioId);
+        todasLasReservas = reservaService.getMisReservas(usuarioId);
+        aplicarFiltros();
+    }
 
-        if (reservas.isEmpty()) {
+    private void aplicarFiltros() {
+        String texto      = searchField.getText().toLowerCase().trim();
+        String estado     = filtroEstado.getValue();
+        LocalDate fecha   = filtroFecha.getValue();
+
+        List<Reserva> filtradas = todasLasReservas.stream()
+                .filter(r -> {
+                    boolean coincideTexto =
+                            texto.isEmpty()
+                            || r.getNombrePista().toLowerCase().contains(texto)
+                            || r.getNombreDeporte().toLowerCase().contains(texto);
+                    boolean coincideEstado =
+                            estado == null
+                            || estado.equals("Todos")
+                            || r.getEstado().name().equals(estado);
+                    boolean coincideFecha =
+                            fecha == null
+                            || r.getFecha().equals(fecha);
+                    return coincideTexto && coincideEstado && coincideFecha;
+                })
+                .collect(Collectors.toList());
+
+        if (filtradas.isEmpty()) {
             emptyLabel.setVisible(true);
             reservasTable.setVisible(false);
         } else {
             emptyLabel.setVisible(false);
             reservasTable.setVisible(true);
-            reservasTable.setItems(FXCollections.observableArrayList(reservas));
+            reservasTable.setItems(FXCollections.observableArrayList(filtradas));
         }
     }
 
-    // ── Cancelar reserva seleccionada ─────────────────────────────────────────
+
+    @FXML
+    protected void onLimpiarFiltros() {
+        searchField.clear();
+        filtroEstado.setValue("Todos");
+        filtroFecha.setValue(null);
+    }
 
     @FXML
     protected void onCancelarReserva() {
@@ -101,8 +146,6 @@ public class MyBookingsController implements Initializable {
             cargarReservas();
         }
     }
-
-    // ── Navegación ────────────────────────────────────────────────────────────
 
     @FXML
     protected void onVolver() {

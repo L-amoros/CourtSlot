@@ -3,12 +3,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!--
-    register.fxml — Pantalla de registro de nuevo usuario
-    ────────────────────────────────────────────────────────
-    Mismo patrón que login.fxml pero con más campos:
-    nombre, email, contraseña, confirmar contraseña.
--->
 <StackPane alignment="CENTER"
            stylesheets="@../css/styles.css"
            xmlns="http://javafx.com/javafx/21"
@@ -35,7 +29,7 @@
                text="Únete para reservar tus pistas favoritas"
                wrapText="true" maxWidth="300" />
 
-        <!-- Formulario — 4 campos -->
+        <!--Formulario-->
         <VBox maxWidth="300" spacing="10">
             <Label styleClass="field-label" text="Nombre completo" />
             <TextField fx:id="nombreField"
@@ -60,13 +54,13 @@
                            accessibleText="Repite la contraseña" />
         </VBox>
 
-        <!-- Mensaje feedback (error o éxito) -->
+        <!--error o éxito-->
         <Label fx:id="errorLabel"
                styleClass="error-label"
                wrapText="true"
                maxWidth="300" />
 
-        <!-- Botón registrar -->
+        <!--registrar-->
         <Button fx:id="registerBtn"
                 maxWidth="300"
                 onAction="#onRegistrar"
@@ -76,7 +70,7 @@
                 accessibleText="Botón crear cuenta nueva"
                 mnemonicParsing="false" />
 
-        <!-- Enlace a login -->
+        <!--login-->
         <HBox alignment="CENTER" spacing="5">
             <Label styleClass="subtext" text="¿Ya tienes cuenta?" />
             <Hyperlink onAction="#onLogin"

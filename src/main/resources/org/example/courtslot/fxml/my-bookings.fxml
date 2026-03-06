@@ -28,6 +28,20 @@
                    text="Mis Reservas"
                    style="-fx-font-size: 32px;" />
 
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <TextField fx:id="searchField"
+                           promptText="🔍 Buscar pista o deporte..."
+                           prefWidth="220" />
+                <ComboBox fx:id="filtroEstado"
+                          prefWidth="150" />
+                <DatePicker fx:id="filtroFecha"
+                            promptText="Filtrar por fecha"
+                            showWeekNumbers="false" />
+                <Button text="✖ Limpiar"
+                        onAction="#onLimpiarFiltros"
+                        mnemonicParsing="false" />
+            </HBox>
+
             <Label fx:id="emptyLabel"
                    styleClass="subtext"
                    text="No tienes reservas activas. ¡Reserva una pista desde el catálogo!"
