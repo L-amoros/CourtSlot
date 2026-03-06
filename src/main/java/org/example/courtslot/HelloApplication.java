@@ -14,6 +14,7 @@ public class HelloApplication extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 1200, 800);
         stage.setTitle("CourtSlot");
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
     }
 

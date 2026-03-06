@@ -17,6 +17,7 @@ public class NavigationUtil {
             Parent root = loader.load();
             Stage stage = (Stage) anyNode.getScene().getWindow();
             stage.setScene(new Scene(root, 1280, 800));
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -30,6 +31,7 @@ public class NavigationUtil {
             Parent root = loader.load();
             Stage stage = (Stage) anyNode.getScene().getWindow();
             stage.setScene(new Scene(root, 1280, 800));
+            stage.setMaximized(true);
             stage.show();
             return loader.getController();
         } catch (IOException e) {
